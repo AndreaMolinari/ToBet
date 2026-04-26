@@ -59,7 +59,7 @@ export function useAuth(): AuthState & {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase!.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         loadUser(session.user.id, session.user.email)
       } else {
@@ -72,16 +72,16 @@ export function useAuth(): AuthState & {
 
   async function signInWithMagicLink(email: string): Promise<void> {
     setAuthError(null)
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+    const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
     if (error) throw error
   }
 
   async function signInWithGoogle(): Promise<void> {
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
+    await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
   }
 
   async function signOut(): Promise<void> {
-    await supabase.auth.signOut()
+    await supabase!.auth.signOut()
   }
 
   async function acceptTerms(): Promise<void> {
