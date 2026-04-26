@@ -10,12 +10,13 @@ import { EventCard } from './components/EventCard'
 import { EventForm } from './components/EventForm'
 import { Archive } from './components/Archive'
 import { MyBets } from './components/MyBets'
+import { AcceptanceScreen } from './components/AcceptanceScreen'
 import { TagManager } from './components/TagManager'
 import { toast } from './lib/toast'
 import type { CreateEventInput, SettleEventInput, PlaceBetInput, Tag, UserRole } from './lib/types'
 
 export default function App() {
-  const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut } = useAuth()
+  const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut, acceptTerms } = useAuth()
   const userTags = user?.role === 'admin' ? undefined : user?.tags
   const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
   const { refresh: refreshSettled } = useEvents('settled', false, userTags)
@@ -218,6 +219,11 @@ export default function App() {
         )}
       </div>
     )
+  }
+
+  // Show acceptance screen if user hasn't accepted both terms yet
+  if (!user.accepted_privacy_at || !user.accepted_rules_at) {
+    return <AcceptanceScreen onAccept={acceptTerms} />
   }
 
   const isAdmin = user.role === 'admin'

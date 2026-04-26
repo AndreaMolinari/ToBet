@@ -12,6 +12,8 @@ export interface Profile {
   losses: number
   role: UserRole
   tags: string[]
+  accepted_privacy_at: string | null
+  accepted_rules_at: string | null
   created_at: string
 }
 

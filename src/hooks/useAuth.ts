@@ -8,6 +8,8 @@ interface AuthUser {
   email?: string
   role: UserRole
   tags: string[]
+  accepted_privacy_at: string | null
+  accepted_rules_at: string | null
 }
 
 interface AuthState {
@@ -20,6 +22,7 @@ export function useAuth(): AuthState & {
   signInWithMagicLink: (email: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  acceptTerms: () => Promise<void>
 } {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,7 +36,14 @@ export function useAuth(): AuthState & {
 
   async function loadUser(id: string, email?: string) {
     const profile = await db.getProfile(id)
-    setUser({ id, email, role: profile?.role ?? 'player', tags: profile?.tags ?? [] })
+    setUser({
+      id,
+      email,
+      role: profile?.role ?? 'player',
+      tags: profile?.tags ?? [],
+      accepted_privacy_at: profile?.accepted_privacy_at ?? null,
+      accepted_rules_at: profile?.accepted_rules_at ?? null,
+    })
   }
 
   useEffect(() => {
@@ -74,5 +84,12 @@ export function useAuth(): AuthState & {
     await supabase.auth.signOut()
   }
 
-  return { user, loading, authError, signInWithMagicLink, signInWithGoogle, signOut }
+  async function acceptTerms(): Promise<void> {
+    if (!user) return
+    await db.acceptTerms(user.id)
+    const ts = new Date().toISOString()
+    setUser(u => u ? { ...u, accepted_privacy_at: ts, accepted_rules_at: ts } : null)
+  }
+
+  return { user, loading, authError, signInWithMagicLink, signInWithGoogle, signOut, acceptTerms }
 }

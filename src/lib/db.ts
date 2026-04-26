@@ -33,6 +33,7 @@ interface Repository {
   cancelBet(betId: string): Promise<void>
   updateProfileRole(userId: string, role: UserRole): Promise<void>
   updateProfileTags(userId: string, tags: string[]): Promise<void>
+  acceptTerms(userId: string): Promise<void>
 
   getTags(): Promise<Tag[]>
   createTag(tag: Tag): Promise<void>
@@ -58,9 +59,9 @@ export class InMemoryRepository implements Repository {
   ]
 
   private profiles: Profile[] = [
-    { id: 'user-1', display_name: 'AndreaM', balance: 1024, wins: 12, losses: 3, role: 'admin', tags: ['public', 'tobe'], created_at: now() },
-    { id: 'user-2', display_name: 'MatteoT', balance: -340, wins: 5, losses: 8, role: 'player', tags: ['public', 'tobe'], created_at: now() },
-    { id: 'user-3', display_name: 'AndreaB', balance: 87, wins: 8, losses: 5, role: 'player', tags: ['public'], created_at: now() },
+    { id: 'user-1', display_name: 'AndreaM', balance: 1024, wins: 12, losses: 3, role: 'admin', tags: ['public', 'tobe'], accepted_privacy_at: now(), accepted_rules_at: now(), created_at: now() },
+    { id: 'user-2', display_name: 'MatteoT', balance: -340, wins: 5, losses: 8, role: 'player', tags: ['public', 'tobe'], accepted_privacy_at: now(), accepted_rules_at: now(), created_at: now() },
+    { id: 'user-3', display_name: 'AndreaB', balance: 87, wins: 8, losses: 5, role: 'player', tags: ['public'], accepted_privacy_at: null, accepted_rules_at: null, created_at: now() },
   ]
 
   private events: Event[] = [
@@ -297,6 +298,14 @@ export class InMemoryRepository implements Repository {
     profile.tags = tags
   }
 
+  async acceptTerms(userId: string): Promise<void> {
+    const profile = this.profiles.find((p) => p.id === userId)
+    if (!profile) throw new Error(`Profile ${userId} not found`)
+    const ts = now()
+    profile.accepted_privacy_at = ts
+    profile.accepted_rules_at = ts
+  }
+
   async getTags(): Promise<Tag[]> {
     return [...this.tags]
   }
@@ -431,6 +440,15 @@ class SupabaseRepository implements Repository {
 
   async updateProfileTags(userId: string, tags: string[]): Promise<void> {
     const { error } = await supabase.from('profiles').update({ tags }).eq('id', userId)
+    if (error) throw error
+  }
+
+  async acceptTerms(userId: string): Promise<void> {
+    const ts = new Date().toISOString()
+    const { error } = await supabase.from('profiles').update({
+      accepted_privacy_at: ts,
+      accepted_rules_at: ts,
+    }).eq('id', userId)
     if (error) throw error
   }
 
