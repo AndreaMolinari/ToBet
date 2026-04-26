@@ -72,12 +72,12 @@ export function useAuth(): AuthState & {
 
   async function signInWithMagicLink(email: string): Promise<void> {
     setAuthError(null)
-    const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+    const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } })
     if (error) throw error
   }
 
   async function signInWithGoogle(): Promise<void> {
-    await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
+    await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } })
   }
 
   async function signOut(): Promise<void> {
