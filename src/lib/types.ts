@@ -11,6 +11,7 @@ export interface Profile {
   wins: number
   losses: number
   role: UserRole
+  tags: string[]
   created_at: string
 }
 
@@ -43,6 +44,7 @@ export interface Event {
   created_at: string
   settled_at?: string
   hidden: boolean
+  tags: string[]
   outcomes: Outcome[]
 }
 
@@ -50,6 +52,7 @@ export interface CreateEventInput {
   title: string
   description?: string
   mode: EventMode
+  tags: string[]
   outcomes: { label: string; odds: number }[]
 }
 

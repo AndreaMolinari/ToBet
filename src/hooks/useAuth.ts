@@ -7,6 +7,7 @@ interface AuthUser {
   id: string
   email?: string
   role: UserRole
+  tags: string[]
 }
 
 interface AuthState {
@@ -32,7 +33,7 @@ export function useAuth(): AuthState & {
 
   async function loadUser(id: string, email?: string) {
     const profile = await db.getProfile(id)
-    setUser({ id, email, role: profile?.role ?? 'player' })
+    setUser({ id, email, role: profile?.role ?? 'player', tags: profile?.tags ?? [] })
   }
 
   useEffect(() => {

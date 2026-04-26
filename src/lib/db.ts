@@ -20,7 +20,7 @@ interface Repository {
   getProfiles(): Promise<Profile[]>
   getProfile(id: string): Promise<Profile | null>
 
-  getEvents(status?: EventStatus, includeHidden?: boolean): Promise<Event[]>
+  getEvents(status?: EventStatus, includeHidden?: boolean, userTags?: string[]): Promise<Event[]>
   getEvent(id: string): Promise<Event | null>
   createEvent(input: CreateEventInput, createdBy: string): Promise<Event>
   addOutcome(input: AddOutcomeInput): Promise<string>
@@ -31,6 +31,7 @@ interface Repository {
   placeBet(input: PlaceBetInput): Promise<Bet>
   cancelBet(betId: string): Promise<void>
   updateProfileRole(userId: string, role: UserRole): Promise<void>
+  updateProfileTags(userId: string, tags: string[]): Promise<void>
 }
 
 // ---------------------------------------------------------------------------
@@ -47,9 +48,9 @@ function uuid(): string {
 
 export class InMemoryRepository implements Repository {
   private profiles: Profile[] = [
-    { id: 'user-1', display_name: 'AndreaM', balance: 1024, wins: 12, losses: 3, role: 'admin', created_at: now() },
-    { id: 'user-2', display_name: 'MatteoT', balance: -340, wins: 5, losses: 8, role: 'player', created_at: now() },
-    { id: 'user-3', display_name: 'AndreaB', balance: 87, wins: 8, losses: 5, role: 'player', created_at: now() },
+    { id: 'user-1', display_name: 'AndreaM', balance: 1024, wins: 12, losses: 3, role: 'admin', tags: ['public', 'tobe'], created_at: now() },
+    { id: 'user-2', display_name: 'MatteoT', balance: -340, wins: 5, losses: 8, role: 'player', tags: ['public', 'tobe'], created_at: now() },
+    { id: 'user-3', display_name: 'AndreaB', balance: 87, wins: 8, losses: 5, role: 'player', tags: ['public'], created_at: now() },
   ]
 
   private events: Event[] = [
@@ -59,6 +60,7 @@ export class InMemoryRepository implements Repository {
       mode: 'single',
       status: 'open',
       hidden: false,
+      tags: ['public'],
       created_by: 'user-1',
       created_at: now(),
       outcomes: [
@@ -103,6 +105,7 @@ export class InMemoryRepository implements Repository {
       mode: 'single',
       status: 'settled',
       hidden: false,
+      tags: ['tobe'],
       created_by: 'user-1',
       created_at: now(),
       settled_at: now(),
@@ -155,10 +158,14 @@ export class InMemoryRepository implements Repository {
     return this.profiles.find((p) => p.id === id) ?? null
   }
 
-  async getEvents(status?: EventStatus, includeHidden = false): Promise<Event[]> {
-    return this.events.filter((e) =>
-      (!status || e.status === status) && (includeHidden || !e.hidden)
-    )
+  async getEvents(status?: EventStatus, includeHidden = false, userTags?: string[]): Promise<Event[]> {
+    return this.events.filter((e) => {
+      if (status && e.status !== status) return false
+      if (!includeHidden && e.hidden) return false
+      // events with no tags are visible to everyone
+      if (userTags && e.tags.length > 0 && !e.tags.some(t => userTags.includes(t))) return false
+      return true
+    })
   }
 
   async getEvent(id: string): Promise<Event | null> {
@@ -174,6 +181,7 @@ export class InMemoryRepository implements Repository {
       mode: input.mode,
       status: 'open',
       hidden: false,
+      tags: input.tags,
       created_by: createdBy,
       created_at: now(),
       outcomes: input.outcomes.map((o) => ({
@@ -272,6 +280,12 @@ export class InMemoryRepository implements Repository {
     if (!profile) throw new Error(`Profile ${userId} not found`)
     profile.role = role
   }
+
+  async updateProfileTags(userId: string, tags: string[]): Promise<void> {
+    const profile = this.profiles.find((p) => p.id === userId)
+    if (!profile) throw new Error(`Profile ${userId} not found`)
+    profile.tags = tags
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -279,7 +293,7 @@ export class InMemoryRepository implements Repository {
 // ---------------------------------------------------------------------------
 
 const OUTCOMES_WITH_BETS = 'id, event_id, label, odds, won, created_at, bets(*)'
-const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
+const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, tags, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
 
 class SupabaseRepository implements Repository {
   async getProfiles(): Promise<Profile[]> {
@@ -294,13 +308,15 @@ class SupabaseRepository implements Repository {
     return data as Profile | null
   }
 
-  async getEvents(status?: EventStatus, includeHidden = false): Promise<Event[]> {
+  async getEvents(status?: EventStatus, includeHidden = false, userTags?: string[]): Promise<Event[]> {
     let query = supabase.from('events').select(EVENTS_WITH_OUTCOMES)
     if (status) query = query.eq('status', status)
     if (!includeHidden) query = query.eq('hidden', false)
     const { data, error } = await query
     if (error) throw error
-    return data as unknown as Event[]
+    const events = data as unknown as Event[]
+    if (!userTags) return events
+    return events.filter(e => e.tags.length === 0 || e.tags.some(t => userTags.includes(t)))
   }
 
   async getEvent(id: string): Promise<Event | null> {
@@ -316,7 +332,7 @@ class SupabaseRepository implements Repository {
   async createEvent(input: CreateEventInput, createdBy: string): Promise<Event> {
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .insert({ title: input.title, description: input.description, mode: input.mode, created_by: createdBy })
+      .insert({ title: input.title, description: input.description, mode: input.mode, tags: input.tags, created_by: createdBy })
       .select('id')
       .single()
     if (eventError) throw eventError
@@ -385,6 +401,11 @@ class SupabaseRepository implements Repository {
 
   async updateProfileRole(userId: string, role: UserRole): Promise<void> {
     const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
+    if (error) throw error
+  }
+
+  async updateProfileTags(userId: string, tags: string[]): Promise<void> {
+    const { error } = await supabase.from('profiles').update({ tags }).eq('id', userId)
     if (error) throw error
   }
 }

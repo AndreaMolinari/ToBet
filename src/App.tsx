@@ -13,10 +13,11 @@ import type { CreateEventInput, SettleEventInput, PlaceBetInput, UserRole } from
 
 export default function App() {
   const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut } = useAuth()
-  const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, refresh: refreshOpen } = useEvents('open')
-  const { refresh: refreshSettled } = useEvents('settled')
+  const userTags = user?.role === 'admin' ? undefined : user?.tags
+  const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
+  const { refresh: refreshSettled } = useEvents('settled', false, userTags)
   const { placeBet } = useBets()
-  const { profiles, updateRole } = useLeaderboard()
+  const { profiles, updateRole, updateTags } = useLeaderboard()
   const [showEventForm, setShowEventForm] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -84,6 +85,15 @@ export default function App() {
       toast.success(role === 'admin' ? 'Utente promosso ad admin' : 'Admin rimosso')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nel cambio ruolo')
+    }
+  }
+
+  async function handleTagsChange(userId: string, tags: string[]) {
+    try {
+      await updateTags(userId, tags)
+      toast.success('Tag aggiornati')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nel salvataggio tag')
     }
   }
 
@@ -301,12 +311,15 @@ export default function App() {
           currentUserId={user.id}
           isAdmin={true}
           onRoleChange={handleRoleChange}
+          onTagsChange={handleTagsChange}
         />
       )}
 
       {showEventForm && (
         <EventForm
           currentUserId={user.id}
+          userTags={user.tags}
+          isAdmin={isAdmin}
           onSubmit={handleCreateEvent}
           onClose={() => setShowEventForm(false)}
         />

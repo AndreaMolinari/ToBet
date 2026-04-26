@@ -9,7 +9,7 @@ interface EventsState {
   error: string | null
 }
 
-export function useEvents(status?: EventStatus, includeHidden = false): EventsState & {
+export function useEvents(status?: EventStatus, includeHidden = false, userTags?: string[]): EventsState & {
   createEvent: (input: CreateEventInput, createdBy: string) => Promise<void>
   addOutcome: (input: AddOutcomeInput) => Promise<string>
   deleteEvent: (eventId: string, refund?: boolean) => Promise<void>
@@ -31,7 +31,7 @@ export function useEvents(status?: EventStatus, includeHidden = false): EventsSt
 
   useEffect(() => {
     let cancelled = false
-    db.getEvents(status, includeHidden)
+    db.getEvents(status, includeHidden, userTags)
       .then(data => { if (!cancelled) { setEvents(data); setLoading(false) } })
       .catch(err => {
         if (!cancelled) {
@@ -40,7 +40,7 @@ export function useEvents(status?: EventStatus, includeHidden = false): EventsSt
         }
       })
     return () => { cancelled = true }
-  }, [status, includeHidden, tick])
+  }, [status, includeHidden, userTags, tick])
 
   useEffect(() => onUpdate(refresh), [refresh])
 

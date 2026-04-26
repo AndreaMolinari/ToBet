@@ -8,6 +8,7 @@ interface LeaderboardState {
   loading: boolean
   error: string | null
   updateRole: (userId: string, role: UserRole) => Promise<void>
+  updateTags: (userId: string, tags: string[]) => Promise<void>
 }
 
 export function useLeaderboard(): LeaderboardState {
@@ -33,5 +34,10 @@ export function useLeaderboard(): LeaderboardState {
     await fetchProfiles()
   }, [fetchProfiles])
 
-  return { profiles, loading, error, updateRole }
+  const updateTags = useCallback(async (userId: string, tags: string[]) => {
+    await db.updateProfileTags(userId, tags)
+    await fetchProfiles()
+  }, [fetchProfiles])
+
+  return { profiles, loading, error, updateRole, updateTags }
 }
