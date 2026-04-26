@@ -50,7 +50,7 @@ export function EventForm({ onSubmit, onClose }: Props) {
   }
 
   function removeOutcome(index: number) {
-    if (outcomes.length <= 2) return
+    if (outcomes.length <= 1) return
     setOutcomes((prev) => prev.filter((_, i) => i !== index))
   }
 
@@ -167,7 +167,7 @@ export function EventForm({ onSubmit, onClose }: Props) {
                   value={o.odds}
                   onChange={(e) => updateOutcome(i, 'odds', e.target.value)}
                 />
-                {outcomes.length > 2 && (
+                {outcomes.length > 1 && (
                   <button
                     onClick={() => removeOutcome(i)}
                     style={{

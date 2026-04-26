@@ -179,7 +179,7 @@ export default function App() {
       {/* Open events */}
       {openEvents.length > 0 && (
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
             Aperte
           </div>
           {openEvents.map(event => (
@@ -197,7 +197,7 @@ export default function App() {
       {/* Settled events */}
       {settledEvents.length > 0 && (
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
             Chiuse
           </div>
           {settledEvents.map(event => (

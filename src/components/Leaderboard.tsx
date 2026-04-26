@@ -8,12 +8,13 @@ export function Leaderboard({ profiles }: Props) {
   const cols = Math.min(profiles.length, 3)
 
   return (
-    <section>
+    <section style={{ marginBottom: '2rem' }}>
       <div style={{
         fontSize: 11,
+        fontWeight: 600,
         letterSpacing: 2,
         textTransform: 'uppercase',
-        color: 'var(--color-text-tertiary)',
+        color: 'var(--color-text-secondary)',
         marginBottom: 12,
       }}>
         Leaderboard
