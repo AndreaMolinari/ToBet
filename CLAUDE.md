@@ -9,7 +9,7 @@ ToBet — internal betting portal for ToBe SRL. Virtual currency only, no real m
 ## Stack
 
 - **Frontend**: React + Vite, TypeScript, deployed to GitHub Pages
-- **Backend**: Supabase (Auth, Postgres, Realtime) — free tier
+- **Backend**: Supabase (Auth, Postgres, Realtime) — free tier, `@supabase/supabase-js`
 - **Auth**: Magic link or Google OAuth via Supabase Auth
 
 ## Common commands
