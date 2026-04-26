@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/AndreaMolinari/ToBet/compare/v1.0.0...v1.0.1) (2026-04-26)
+
+
+### Bug Fixes
+
+* add 404.html for SPA routing on GitHub Pages ([80d25e8](https://github.com/AndreaMolinari/ToBet/commit/80d25e81a07e117872088039a4ca726b842dcaa2))
+
 ## 1.0.0 (2026-04-26)
 
 
