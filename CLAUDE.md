@@ -8,9 +8,9 @@ ToBet — internal betting portal for ToBe SRL. Virtual currency only, no real m
 
 ## Stack
 
-- **Frontend**: React + Vite, TypeScript, deployed to GitHub Pages
+- **Frontend**: React 19 + Vite, TypeScript, deployed to GitHub Pages
 - **Backend**: Supabase (Auth, Postgres, Realtime) — free tier, `@supabase/supabase-js`
-- **Auth**: Magic link or Google OAuth via Supabase Auth
+- **Auth**: Magic link or Google OAuth via Supabase Auth — PKCE flow enabled (prevents email pre-fetch from consuming the OTP)
 
 ## Common commands
 
@@ -18,45 +18,55 @@ ToBet — internal betting portal for ToBe SRL. Virtual currency only, no real m
 npm run dev          # start dev server
 npm run build        # production build (output: dist/)
 npm run preview      # preview production build locally
-npm run lint         # ESLint
+npm run lint         # ESLint (--max-warnings 0, strict)
+npm test             # Vitest unit tests
+npm run test:ui      # Vitest browser UI
 ```
 
 Deploy is automated via `.github/workflows/deploy.yml` on push to main (GitHub Pages).
+Pre-commit hook (husky) runs lint + tests before every commit.
 
 ## Architecture
 
 ### Data flow
-All DB access goes through the Supabase JS client (`src/lib/supabase.ts`). Hooks in `src/hooks/` wrap Supabase queries and realtime subscriptions; components never call Supabase directly.
+All DB access goes through `src/lib/db.ts` which exports a `db` instance. If `VITE_SUPABASE_URL` is set → `SupabaseRepository`; otherwise → `InMemoryRepository` (demo mode with 3 fake players, no persistence). Hooks in `src/hooks/` wrap `db` calls; components never call the DB directly.
 
 ### Key domain concepts
 
 **Events** have a `mode`: `single` (one winner among outcomes) or `multi` (each outcome resolved independently). Status: `open → settled | voided`.
 
-**Settlement** is the critical flow: when a bookmaker closes an event, `pnl` is written to each bet (`stake * odds` for winners, `-stake` for losers), then `profiles.balance` is recalculated. Prefer the DB function in `supabase/migrations/003_functions.sql` over client-side settlement — it's atomic.
+**Roles**: `admin` can create/settle events and delete any bet. `player` can only place/cancel their own bets. Role stored in `profiles.role` (enum `user_role`). UI hides FAB and "Chiudi scommessa" for non-admins. RLS enforces this server-side.
 
-**Demo mode**: unauthenticated users get the same UI backed by React state (no DB). Three fake players are preloaded. No persistence across refreshes.
+**Settlement** is atomic via the `settle_event()` DB function (`supabase/migrations/003_functions.sql`) — updates `outcomes.won`, calculates `bets.pnl`, updates `profiles.balance/wins/losses` in one transaction.
 
-### Realtime
-Supabase Realtime channels drive live updates for events, bets, and the leaderboard. Subscriptions are set up inside hooks (`useEvents`, `useLeaderboard`) and cleaned up on unmount.
+**Notifications**: `src/lib/toast.ts` is a plain pub/sub store (no React context). Use `toast.success()`, `toast.error()`, `toast.info()` anywhere. `<Toaster />` in `main.tsx` renders them.
+
+### Auth
+`useAuth` loads the user's profile (including `role`) via `db.getProfile()` after session init. The `handle_new_user` trigger auto-creates a `profiles` row on first login — must use `set search_path = public` and `public.profiles` explicitly or it fails with "relation does not exist".
 
 ### RLS design
-All authenticated users can read everything (small internal team, no multi-tenancy). Write access is scoped: only the event creator can update/settle their events; users manage only their own bets and profile.
+All authenticated users read everything. Write access:
+- `events`/`outcomes` insert/update: admin only
+- `bets` insert/delete: own bets only (+ admin can delete any)
+- `profiles` update: own profile only
 
 ## Database
 
-Migrations live in `supabase/supabase/migrations/`:
-- `001_schema.sql` — tables and enums
+Migrations live in `supabase/migrations/`:
+- `001_schema.sql` — tables, enums, `handle_new_user` trigger
 - `002_rls.sql` — Row Level Security policies
-- `003_functions.sql` — settlement DB function + trigger
+- `003_functions.sql` — `settle_event()` DB function
+- `004_roles.sql` — `user_role` enum, `profiles.role` column, updated RLS
+- `005_profiles_insert_policy.sql` — insert policy for profiles
+- `006_fix_trigger_schema.sql` — fix trigger `search_path` to find `public.profiles`
 
-Run migrations via Supabase CLI: `supabase db push`.
+Migrations are applied via Supabase MCP (configured in `.mcp.json`) or manually via SQL Editor. `.mcp.json` is gitignored (contains auth token).
 
-## Supabase local dev
+## Environment
 
-```bash
-supabase start       # starts local Supabase stack
-supabase db reset    # resets local DB and reruns migrations
-supabase stop
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
 ```
 
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local` (local) or GitHub Actions secrets (production).
+Copy `.env.example` to `.env` (or `.env.local`) and fill in values from Supabase → Project Settings → API.

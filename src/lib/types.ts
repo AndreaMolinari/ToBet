@@ -1,6 +1,8 @@
 export type EventStatus = 'open' | 'settled' | 'voided'
 export type EventMode = 'single' | 'multi'
 
+export type UserRole = 'admin' | 'player'
+
 export interface Profile {
   id: string
   display_name: string
@@ -8,6 +10,7 @@ export interface Profile {
   balance: number
   wins: number
   losses: number
+  role: UserRole
   created_at: string
 }
 

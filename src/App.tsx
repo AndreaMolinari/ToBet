@@ -187,6 +187,7 @@ export default function App() {
               key={event.id}
               event={event}
               currentUserId={user.id}
+              isAdmin={user.role === 'admin'}
               onBet={(outcomeId, stake) => handleBet(outcomeId, stake)}
               onSettle={(winningOutcomeIds) => handleSettle({ event_id: event.id, winning_outcome_ids: winningOutcomeIds })}
             />
@@ -212,8 +213,8 @@ export default function App() {
         </div>
       )}
 
-      {/* FAB */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+      {/* FAB — solo admin */}
+      {user.role === 'admin' && <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
         <button
           onClick={() => setShowEventForm(true)}
           style={{
@@ -230,7 +231,7 @@ export default function App() {
         >
           + Nuova scommessa
         </button>
-      </div>
+      </div>}
 
       {showEventForm && (
         <EventForm

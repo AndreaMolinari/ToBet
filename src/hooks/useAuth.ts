@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { db } from '../lib/db'
+import type { UserRole } from '../lib/types'
+
+interface AuthUser {
+  id: string
+  email?: string
+  role: UserRole
+}
 
 interface AuthState {
-  user: { id: string; email?: string } | null
+  user: AuthUser | null
   loading: boolean
   authError: string | null
 }
@@ -12,7 +20,7 @@ export function useAuth(): AuthState & {
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 } {
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState<string | null>(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1))
@@ -22,19 +30,30 @@ export function useAuth(): AuthState & {
     return hash.get('error_description')?.replace(/\+/g, ' ') ?? 'Errore di autenticazione.'
   })
 
+  async function loadUser(id: string, email?: string) {
+    const profile = await db.getProfile(id)
+    setUser({ id, email, role: profile?.role ?? 'player' })
+  }
+
   useEffect(() => {
-    // Clean up error params from URL without triggering a reload
     if (window.location.hash.includes('error')) {
       history.replaceState(null, '', window.location.pathname)
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null)
-      setLoading(false)
+      if (session?.user) {
+        loadUser(session.user.id, session.user.email).finally(() => setLoading(false))
+      } else {
+        setLoading(false)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null)
+      if (session?.user) {
+        loadUser(session.user.id, session.user.email)
+      } else {
+        setUser(null)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -42,7 +61,8 @@ export function useAuth(): AuthState & {
 
   async function signInWithMagicLink(email: string): Promise<void> {
     setAuthError(null)
-    await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+    if (error) throw error
   }
 
   async function signInWithGoogle(): Promise<void> {

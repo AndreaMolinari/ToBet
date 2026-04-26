@@ -41,30 +41,9 @@ function uuid(): string {
 
 export class InMemoryRepository implements Repository {
   private profiles: Profile[] = [
-    {
-      id: 'user-1',
-      display_name: 'AndreaM',
-      balance: 1024,
-      wins: 12,
-      losses: 3,
-      created_at: now(),
-    },
-    {
-      id: 'user-2',
-      display_name: 'MatteoT',
-      balance: -340,
-      wins: 5,
-      losses: 8,
-      created_at: now(),
-    },
-    {
-      id: 'user-3',
-      display_name: 'AndreaB',
-      balance: 87,
-      wins: 8,
-      losses: 5,
-      created_at: now(),
-    },
+    { id: 'user-1', display_name: 'AndreaM', balance: 1024, wins: 12, losses: 3, role: 'admin', created_at: now() },
+    { id: 'user-2', display_name: 'MatteoT', balance: -340, wins: 5, losses: 8, role: 'player', created_at: now() },
+    { id: 'user-3', display_name: 'AndreaB', balance: 87, wins: 8, losses: 5, role: 'player', created_at: now() },
   ]
 
   private events: Event[] = [

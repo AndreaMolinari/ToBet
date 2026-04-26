@@ -5,6 +5,7 @@ import { SettleModal } from './SettleModal'
 interface Props {
   event: Event
   currentUserId?: string
+  isAdmin?: boolean
   onBet: (outcomeId: string, stake: number) => void
   onSettle: (winningOutcomeIds: string[]) => void
 }
@@ -17,10 +18,9 @@ function formatDate(iso: string): string {
   })
 }
 
-export function EventCard({ event, currentUserId, onBet, onSettle }: Props) {
+export function EventCard({ event, currentUserId, isAdmin, onBet, onSettle }: Props) {
   const [showSettle, setShowSettle] = useState(false)
 
-  const isCreator = currentUserId === event.created_by
   const isOpen = event.status === 'open'
   const isSettled = event.status === 'settled'
 
@@ -80,6 +80,8 @@ export function EventCard({ event, currentUserId, onBet, onSettle }: Props) {
             const bettors = outcome.bets.map((b) => b.user_id)
             const isWinner = outcome.won === true
 
+            const canBet = isOpen && !userBet
+
             const rowStyle: React.CSSProperties = {
               background: 'var(--color-background-secondary)',
               borderRadius: 'var(--border-radius-md)',
@@ -87,21 +89,11 @@ export function EventCard({ event, currentUserId, onBet, onSettle }: Props) {
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              cursor: isOpen && !userBet ? 'pointer' : 'default',
               borderLeft: isWinner ? '3px solid var(--color-success)' : '3px solid transparent',
-              transition: 'background 0.15s',
             }
 
             return (
-              <div
-                key={outcome.id}
-                style={rowStyle}
-                onClick={() => {
-                  if (isOpen && !userBet) {
-                    onBet(outcome.id, 1)
-                  }
-                }}
-              >
+              <div key={outcome.id} style={rowStyle}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)' }}>
                     {outcome.label}
@@ -131,16 +123,36 @@ export function EventCard({ event, currentUserId, onBet, onSettle }: Props) {
                     background: 'rgba(245,184,0,0.10)',
                     borderRadius: 'var(--border-radius-full)',
                     padding: '2px 8px',
+                    whiteSpace: 'nowrap',
                   }}>
-                    La tua bet
+                    ✓ Scommesso
                   </div>
+                )}
+                {canBet && (
+                  <button
+                    onClick={() => onBet(outcome.id, 1)}
+                    style={{
+                      background: 'var(--color-accent)',
+                      color: '#000',
+                      border: 'none',
+                      borderRadius: 'var(--border-radius-full)',
+                      padding: '4px 12px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
+                    Scommetti
+                  </button>
                 )}
               </div>
             )
           })}
         </div>
 
-        {isOpen && isCreator && (
+        {isOpen && isAdmin && (
           <button
             onClick={() => setShowSettle(true)}
             style={{
