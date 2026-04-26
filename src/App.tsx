@@ -10,7 +10,7 @@ import { EventForm } from './components/EventForm'
 import type { CreateEventInput, SettleEventInput, PlaceBetInput } from './lib/types'
 
 export default function App() {
-  const { user, loading: authLoading, signInWithMagicLink, signInWithGoogle, signOut } = useAuth()
+  const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut } = useAuth()
   const { events: openEvents, createEvent, settleEvent, refresh: refreshOpen } = useEvents('open')
   const { events: settledEvents, refresh: refreshSettled } = useEvents('settled')
   const { placeBet } = useBets()
@@ -58,6 +58,20 @@ export default function App() {
         <div style={{ marginBottom: 32 }}>
           <Logo />
         </div>
+
+        {authError && (
+          <div style={{
+            background: 'rgba(239,68,68,0.1)',
+            border: '0.5px solid rgba(239,68,68,0.3)',
+            borderRadius: 'var(--border-radius-md)',
+            padding: '10px 14px',
+            color: 'var(--color-danger)',
+            fontSize: 13,
+            marginBottom: 16,
+          }}>
+            {authError}
+          </div>
+        )}
 
         {emailSent ? (
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 14 }}>
