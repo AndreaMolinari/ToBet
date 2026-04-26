@@ -1,8 +1,8 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -15,7 +15,6 @@ concurrency:
 
 jobs:
   deploy:
-    needs: []
     runs-on: ubuntu-latest
     environment:
       name: github-pages

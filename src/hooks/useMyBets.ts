@@ -25,7 +25,7 @@ export function useMyBets(userId: string | undefined) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId || !supabase) return
     let cancelled = false
     supabase
       .from('bets')

@@ -34,6 +34,7 @@ describe('InMemoryRepository', () => {
       {
         title: 'Chi arriva tardi?',
         mode: 'single',
+        tags: [],
         outcomes: [
           { label: 'Gilberto', odds: 1.5 },
           { label: 'AndreaB', odds: 2.5 },
@@ -67,6 +68,7 @@ describe('InMemoryRepository', () => {
       {
         title: 'Settle test',
         mode: 'single',
+        tags: [],
         outcomes: [
           { label: 'Opzione A', odds: 2 },
           { label: 'Opzione B', odds: 3 },

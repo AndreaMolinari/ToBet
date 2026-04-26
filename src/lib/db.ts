@@ -356,7 +356,7 @@ class SupabaseRepository implements Repository {
   }
 
   async getEvent(id: string): Promise<Event | null> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('events')
       .select(EVENTS_WITH_OUTCOMES)
       .eq('id', id)
@@ -366,14 +366,14 @@ class SupabaseRepository implements Repository {
   }
 
   async createEvent(input: CreateEventInput, createdBy: string): Promise<Event> {
-    const { data: event, error: eventError } = await supabase
+    const { data: event, error: eventError } = await this.client
       .from('events')
       .insert({ title: input.title, description: input.description, mode: input.mode, tags: input.tags, created_by: createdBy })
       .select('id')
       .single()
     if (eventError) throw eventError
 
-    const { error: outcomesError } = await supabase
+    const { error: outcomesError } = await this.client
       .from('outcomes')
       .insert(input.outcomes.map(o => ({ event_id: event.id, label: o.label, odds: o.odds })))
     if (outcomesError) throw outcomesError
@@ -384,7 +384,7 @@ class SupabaseRepository implements Repository {
   }
 
   async addOutcome(input: AddOutcomeInput): Promise<string> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('outcomes')
       .insert({ event_id: input.event_id, label: input.label, odds: input.odds })
       .select('id')
@@ -421,7 +421,7 @@ class SupabaseRepository implements Repository {
   }
 
   async placeBet(input: PlaceBetInput): Promise<Bet> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('bets')
       .insert({ outcome_id: input.outcome_id, user_id: input.user_id, stake: input.stake })
       .select()

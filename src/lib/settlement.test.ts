@@ -16,6 +16,8 @@ function makeEvent(overrides: Partial<Event> = {}): Event {
     title: 'Test event',
     mode: 'single',
     status: 'open',
+    hidden: false,
+    tags: [],
     created_by: 'u1',
     created_at: '',
     outcomes: [],

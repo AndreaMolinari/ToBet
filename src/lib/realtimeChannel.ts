@@ -14,7 +14,7 @@ function notifyAll() {
 
 export function broadcastUpdate() {
   if (!import.meta.env.VITE_SUPABASE_URL) return
-  supabase.channel('tobet-updates').send({
+  supabase!.channel('tobet-updates').send({
     type: 'broadcast',
     event: 'update',
     payload: {},
@@ -23,7 +23,7 @@ export function broadcastUpdate() {
 
 // Single global channel — set up once at module load
 if (import.meta.env.VITE_SUPABASE_URL) {
-  supabase
+  supabase!
     .channel('tobet-updates')
     .on('broadcast', { event: 'update' }, notifyAll)
     .subscribe()
