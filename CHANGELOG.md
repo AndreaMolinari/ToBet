@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/AndreaMolinari/ToBet/compare/v1.0.1...v1.0.2) (2026-04-26)
+
+
+### Bug Fixes
+
+* auth link redirect ([6a7d116](https://github.com/AndreaMolinari/ToBet/commit/6a7d116a0708fb6cd2ca5cdd32222f73e4e3ec23))
+
 ## [1.0.1](https://github.com/AndreaMolinari/ToBet/compare/v1.0.0...v1.0.1) (2026-04-26)
 
 
