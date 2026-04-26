@@ -1,28 +1,37 @@
 import { useState } from 'react'
-import type { Profile, UserRole } from '../lib/types'
+import type { Profile, Tag, UserRole } from '../lib/types'
 
 interface Props {
   profiles: Profile[]
+  allTags?: Tag[]
   currentUserId?: string
   isAdmin?: boolean
   onRoleChange?: (userId: string, role: UserRole) => void
   onTagsChange?: (userId: string, tags: string[]) => void
 }
 
-function TagEditor({ userId, initialTags, onSave }: { userId: string; initialTags: string[]; onSave: (userId: string, tags: string[]) => void }) {
+function TagEditor({ userId, initialTags, allTags, onSave }: {
+  userId: string
+  initialTags: string[]
+  allTags: Tag[]
+  onSave: (userId: string, tags: string[]) => void
+}) {
   const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState(initialTags.join(', '))
+  const [selected, setSelected] = useState<string[]>(initialTags)
+
+  function toggle(name: string) {
+    setSelected(prev => prev.includes(name) ? prev.filter(t => t !== name) : [...prev, name])
+  }
 
   function handleSave() {
-    const tags = value.split(',').map(t => t.trim()).filter(Boolean)
-    onSave(userId, tags)
+    onSave(userId, selected)
     setEditing(false)
   }
 
   if (!editing) {
     return (
       <button
-        onClick={() => setEditing(true)}
+        onClick={() => { setSelected(initialTags); setEditing(true) }}
         style={{
           marginTop: 4,
           background: 'transparent',
@@ -41,44 +50,61 @@ function TagEditor({ userId, initialTags, onSave }: { userId: string; initialTag
   }
 
   return (
-    <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-      <input
-        autoFocus
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder="tobe, altro"
-        style={{
-          flex: 1,
-          background: 'var(--color-background-primary)',
-          border: '0.5px solid var(--color-border-tertiary)',
-          borderRadius: 'var(--border-radius-md)',
-          padding: '4px 8px',
-          color: 'var(--color-text-primary)',
-          fontSize: 12,
-          outline: 'none',
-        }}
-        onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false) }}
-      />
-      <button
-        onClick={handleSave}
-        style={{
-          background: 'var(--color-accent)',
-          color: '#000',
-          border: 'none',
-          borderRadius: 'var(--border-radius-full)',
-          padding: '4px 10px',
-          fontSize: 11,
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        OK
-      </button>
+    <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {allTags.map(tag => (
+          <button
+            key={tag.name}
+            onClick={() => toggle(tag.name)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 'var(--border-radius-full)',
+              fontSize: 11,
+              fontWeight: 500,
+              background: selected.includes(tag.name) ? 'var(--color-accent)' : 'var(--color-background-primary)',
+              color: selected.includes(tag.name) ? '#000' : 'var(--color-text-secondary)',
+              border: `0.5px solid ${selected.includes(tag.name) ? 'transparent' : 'var(--color-border-tertiary)'}`,
+              cursor: 'pointer',
+            }}
+          >
+            {tag.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          onClick={handleSave}
+          style={{
+            background: 'var(--color-accent)',
+            color: '#000',
+            border: 'none',
+            borderRadius: 'var(--border-radius-full)',
+            padding: '4px 12px',
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Salva
+        </button>
+        <button
+          onClick={() => setEditing(false)}
+          style={{
+            background: 'transparent',
+            color: 'var(--color-text-tertiary)',
+            border: 'none',
+            fontSize: 11,
+            cursor: 'pointer',
+          }}
+        >
+          Annulla
+        </button>
+      </div>
     </div>
   )
 }
 
-export function Leaderboard({ profiles, currentUserId, isAdmin, onRoleChange, onTagsChange }: Props) {
+export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, onRoleChange, onTagsChange }: Props) {
   const cols = Math.min(profiles.length, 3)
 
   return (
@@ -160,7 +186,7 @@ export function Leaderboard({ profiles, currentUserId, isAdmin, onRoleChange, on
                 )
               )}
               {isAdmin && !isSelf && onTagsChange && (
-                <TagEditor userId={p.id} initialTags={p.tags} onSave={onTagsChange} />
+                <TagEditor userId={p.id} initialTags={p.tags} allTags={allTags} onSave={onTagsChange} />
               )}
             </div>
           )

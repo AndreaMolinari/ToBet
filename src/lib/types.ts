@@ -72,3 +72,8 @@ export interface SettleEventInput {
   event_id: string
   winning_outcome_ids: string[]
 }
+
+export interface Tag {
+  name: string
+  label: string
+}

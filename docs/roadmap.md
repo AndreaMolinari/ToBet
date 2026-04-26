@@ -57,12 +57,12 @@
 - [x] Filtro in `useEvents`: mostra solo eventi con tag in overlap con i tag dell'utente
 - [x] UI admin — creazione evento: campo per assegnare tag all'evento
 - [x] UI admin — tab Admin: assegnare/rimuovere tag agli utenti
-- [ ] Tabella `tags` a DB: `name text primary key, label text` — fonte di verità per i tag disponibili
-- [ ] Seed: inserire tag di default (`public`, eventuali tag aziendali)
-- [ ] Hook `useTags`: carica la lista completa dei tag disponibili
-- [ ] EventForm: sostituire free text / bottoni statici con lista da DB
-- [ ] Tab Admin utenti: assegnare tag da lista DB (checkbox o multi-select)
-- [ ] Tab Admin tag: sezione dedicata per creare/eliminare tag (solo admin)
+- [x] Tabella `tags` a DB: `name text primary key, label text` — fonte di verità per i tag disponibili
+- [x] Seed: inserire tag di default (`public`, eventuali tag aziendali)
+- [x] Hook `useTags`: carica la lista completa dei tag disponibili
+- [x] EventForm: sostituire free text / bottoni statici con lista da DB
+- [x] Tab Admin utenti: assegnare tag da lista DB (checkbox o multi-select)
+- [x] Tab Admin tag: sezione dedicata per creare/eliminare tag (solo admin)
 - [ ] RLS opzionale: se si vuole bloccare anche lato DB (ora gestito in app)
 
 ### Tecnico

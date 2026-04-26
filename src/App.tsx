@@ -3,13 +3,15 @@ import { useAuth } from './hooks/useAuth'
 import { useEvents } from './hooks/useEvents'
 import { useBets } from './hooks/useBets'
 import { useLeaderboard } from './hooks/useLeaderboard'
+import { useTags } from './hooks/useTags'
 import { Logo } from './components/Logo'
 import { Leaderboard } from './components/Leaderboard'
 import { EventCard } from './components/EventCard'
 import { EventForm } from './components/EventForm'
 import { Archive } from './components/Archive'
+import { TagManager } from './components/TagManager'
 import { toast } from './lib/toast'
-import type { CreateEventInput, SettleEventInput, PlaceBetInput, UserRole } from './lib/types'
+import type { CreateEventInput, SettleEventInput, PlaceBetInput, Tag, UserRole } from './lib/types'
 
 export default function App() {
   const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut } = useAuth()
@@ -18,6 +20,7 @@ export default function App() {
   const { refresh: refreshSettled } = useEvents('settled', false, userTags)
   const { placeBet } = useBets()
   const { profiles, updateRole, updateTags } = useLeaderboard()
+  const { tags: allTags, createTag, deleteTag } = useTags()
   const [showEventForm, setShowEventForm] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -94,6 +97,24 @@ export default function App() {
       toast.success('Tag aggiornati')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nel salvataggio tag')
+    }
+  }
+
+  async function handleCreateTag(tag: Tag) {
+    try {
+      await createTag(tag)
+      toast.success(`Tag "${tag.label}" creato`)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nella creazione del tag')
+    }
+  }
+
+  async function handleDeleteTag(name: string) {
+    try {
+      await deleteTag(name)
+      toast.success('Tag eliminato')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nell\'eliminazione del tag')
     }
   }
 
@@ -199,6 +220,7 @@ export default function App() {
   }
 
   const isAdmin = user.role === 'admin'
+  const availableTags = allTags.filter(t => isAdmin || user.tags.includes(t.name))
 
   const tabs = [
     { key: 'home' as const, label: 'Home' },
@@ -306,20 +328,23 @@ export default function App() {
 
       {/* Admin tab */}
       {tab === 'admin' && isAdmin && (
-        <Leaderboard
-          profiles={profiles}
-          currentUserId={user.id}
-          isAdmin={true}
-          onRoleChange={handleRoleChange}
-          onTagsChange={handleTagsChange}
-        />
+        <>
+          <Leaderboard
+            profiles={profiles}
+            allTags={allTags}
+            currentUserId={user.id}
+            isAdmin={true}
+            onRoleChange={handleRoleChange}
+            onTagsChange={handleTagsChange}
+          />
+          <TagManager tags={allTags} onCreate={handleCreateTag} onDelete={handleDeleteTag} />
+        </>
       )}
 
       {showEventForm && (
         <EventForm
           currentUserId={user.id}
-          userTags={user.tags}
-          isAdmin={isAdmin}
+          availableTags={availableTags}
           onSubmit={handleCreateEvent}
           onClose={() => setShowEventForm(false)}
         />

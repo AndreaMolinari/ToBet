@@ -9,6 +9,7 @@ import type {
   PlaceBetInput,
   Profile,
   SettleEventInput,
+  Tag,
   UserRole,
 } from './types'
 
@@ -32,6 +33,10 @@ interface Repository {
   cancelBet(betId: string): Promise<void>
   updateProfileRole(userId: string, role: UserRole): Promise<void>
   updateProfileTags(userId: string, tags: string[]): Promise<void>
+
+  getTags(): Promise<Tag[]>
+  createTag(tag: Tag): Promise<void>
+  deleteTag(name: string): Promise<void>
 }
 
 // ---------------------------------------------------------------------------
@@ -47,6 +52,11 @@ function uuid(): string {
 }
 
 export class InMemoryRepository implements Repository {
+  private tags: Tag[] = [
+    { name: 'public', label: 'Public' },
+    { name: 'tobe', label: 'ToBe' },
+  ]
+
   private profiles: Profile[] = [
     { id: 'user-1', display_name: 'AndreaM', balance: 1024, wins: 12, losses: 3, role: 'admin', tags: ['public', 'tobe'], created_at: now() },
     { id: 'user-2', display_name: 'MatteoT', balance: -340, wins: 5, losses: 8, role: 'player', tags: ['public', 'tobe'], created_at: now() },
@@ -286,6 +296,21 @@ export class InMemoryRepository implements Repository {
     if (!profile) throw new Error(`Profile ${userId} not found`)
     profile.tags = tags
   }
+
+  async getTags(): Promise<Tag[]> {
+    return [...this.tags]
+  }
+
+  async createTag(tag: Tag): Promise<void> {
+    if (this.tags.find(t => t.name === tag.name)) throw new Error(`Tag ${tag.name} already exists`)
+    this.tags.push(tag)
+  }
+
+  async deleteTag(name: string): Promise<void> {
+    const idx = this.tags.findIndex(t => t.name === name)
+    if (idx === -1) throw new Error(`Tag ${name} not found`)
+    this.tags.splice(idx, 1)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -406,6 +431,22 @@ class SupabaseRepository implements Repository {
 
   async updateProfileTags(userId: string, tags: string[]): Promise<void> {
     const { error } = await supabase.from('profiles').update({ tags }).eq('id', userId)
+    if (error) throw error
+  }
+
+  async getTags(): Promise<Tag[]> {
+    const { data, error } = await supabase.from('tags').select('*').order('name')
+    if (error) throw error
+    return data as Tag[]
+  }
+
+  async createTag(tag: Tag): Promise<void> {
+    const { error } = await supabase.from('tags').insert(tag)
+    if (error) throw error
+  }
+
+  async deleteTag(name: string): Promise<void> {
+    const { error } = await supabase.from('tags').delete().eq('name', name)
     if (error) throw error
   }
 }

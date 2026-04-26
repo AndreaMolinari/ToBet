@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CreateEventInput, EventMode } from '../lib/types'
+import type { CreateEventInput, EventMode, Tag } from '../lib/types'
 
 interface OutcomeDraft {
   label: string
@@ -8,8 +8,7 @@ interface OutcomeDraft {
 
 interface Props {
   currentUserId: string
-  userTags: string[]
-  isAdmin: boolean
+  availableTags: Tag[]  // tags this user can assign (filtered by user.tags, or all for admin)
   onSubmit: (input: CreateEventInput) => void
   onClose: () => void
 }
@@ -34,13 +33,11 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
 }
 
-export function EventForm({ userTags, isAdmin, onSubmit, onClose }: Props) {
+export function EventForm({ availableTags, onSubmit, onClose }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [mode, setMode] = useState<EventMode>('single')
-  // selectedTag: the single tag applied to this event
   const [selectedTag, setSelectedTag] = useState('public')
-  const [customTag, setCustomTag] = useState('')
   const [outcomes, setOutcomes] = useState<OutcomeDraft[]>([
     { label: '', odds: '2.00' },
     { label: '', odds: '2.00' },
@@ -67,12 +64,11 @@ export function EventForm({ userTags, isAdmin, onSubmit, onClose }: Props) {
     }))
     if (parsedOutcomes.some((o) => !o.label || isNaN(o.odds) || o.odds < 1.01)) return
 
-    const finalTag = isAdmin && customTag.trim() ? customTag.trim() : selectedTag
     onSubmit({
       title: title.trim(),
       description: description.trim() || undefined,
       mode,
-      tags: [finalTag],
+      tags: [selectedTag],
       outcomes: parsedOutcomes,
     })
   }
@@ -154,37 +150,28 @@ export function EventForm({ userTags, isAdmin, onSubmit, onClose }: Props) {
           </div>
         </div>
 
-        {/* Tag selector — shown if user has extra tags or is admin (can use custom tags) */}
-        {(userTags.length > 1 || isAdmin) && (
+        {availableTags.length > 1 && (
           <div>
             <label style={labelStyle}>Visibilità</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {userTags.map(tag => (
+              {availableTags.map(tag => (
                 <button
-                  key={tag}
-                  onClick={() => { setSelectedTag(tag); setCustomTag('') }}
+                  key={tag.name}
+                  onClick={() => setSelectedTag(tag.name)}
                   style={{
                     padding: '7px 16px',
                     borderRadius: 'var(--border-radius-md)',
                     fontSize: 13,
                     fontWeight: 600,
-                    background: selectedTag === tag && !customTag ? 'var(--color-accent)' : 'var(--color-background-primary)',
-                    color: selectedTag === tag && !customTag ? '#000' : 'var(--color-text-secondary)',
-                    border: `0.5px solid ${selectedTag === tag && !customTag ? 'transparent' : 'var(--color-border-tertiary)'}`,
+                    background: selectedTag === tag.name ? 'var(--color-accent)' : 'var(--color-background-primary)',
+                    color: selectedTag === tag.name ? '#000' : 'var(--color-text-secondary)',
+                    border: `0.5px solid ${selectedTag === tag.name ? 'transparent' : 'var(--color-border-tertiary)'}`,
                     cursor: 'pointer',
                   }}
                 >
-                  {tag}
+                  {tag.label}
                 </button>
               ))}
-              {isAdmin && (
-                <input
-                  style={{ ...inputStyle, flex: 1, minWidth: 120 }}
-                  value={customTag}
-                  onChange={e => { setCustomTag(e.target.value); if (e.target.value) setSelectedTag('') }}
-                  placeholder="tag custom (admin)"
-                />
-              )}
             </div>
           </div>
         )}
