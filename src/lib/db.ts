@@ -39,7 +39,7 @@ function uuid(): string {
   return crypto.randomUUID()
 }
 
-class InMemoryRepository implements Repository {
+export class InMemoryRepository implements Repository {
   private profiles: Profile[] = [
     {
       id: 'user-1',
