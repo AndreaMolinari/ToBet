@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/db'
+import { onUpdate, broadcastUpdate } from '../lib/realtimeChannel'
 import type { Event, EventStatus, CreateEventInput, AddOutcomeInput, SettleEventInput } from '../lib/types'
 
 interface EventsState {
@@ -41,30 +42,37 @@ export function useEvents(status?: EventStatus, includeHidden = false): EventsSt
     return () => { cancelled = true }
   }, [status, includeHidden, tick])
 
+  useEffect(() => onUpdate(refresh), [refresh])
+
   async function createEvent(input: CreateEventInput, createdBy: string): Promise<void> {
     await db.createEvent(input, createdBy)
     refresh()
+    broadcastUpdate()
   }
 
   async function addOutcome(input: AddOutcomeInput): Promise<string> {
     const id = await db.addOutcome(input)
     refresh()
+    broadcastUpdate()
     return id
   }
 
   async function deleteEvent(eventId: string, refund = false): Promise<void> {
     await db.deleteEvent(eventId, refund)
     refresh()
+    broadcastUpdate()
   }
 
   async function hideEvent(eventId: string, hidden: boolean): Promise<void> {
     await db.hideEvent(eventId, hidden)
     refresh()
+    broadcastUpdate()
   }
 
   async function settleEvent(input: SettleEventInput): Promise<void> {
     await db.settleEvent(input)
     refresh()
+    broadcastUpdate()
   }
 
   return { events, loading, error, createEvent, addOutcome, deleteEvent, hideEvent, settleEvent, refresh }

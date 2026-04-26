@@ -52,7 +52,7 @@
 - [ ] Statistiche: win rate, ROI, streak
 
 ### Tecnico
-- [ ] Realtime: Supabase Realtime per aggiornamenti live senza refresh manuale
+- [x] Realtime: broadcast channel condiviso — eventi, scommesse e leaderboard si aggiornano live su tutti i client
 - [ ] GitHub Pages deploy — configurare `.github/workflows/deploy.yml`
 - [ ] Generare tipi TypeScript da Supabase schema (`supabase gen types`)
 - [ ] Aggiungere `order by created_at desc` alle query eventi

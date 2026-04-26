@@ -1,0 +1,30 @@
+import { supabase } from './supabase'
+
+type Listener = () => void
+const listeners = new Set<Listener>()
+
+export function onUpdate(fn: Listener): () => void {
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+function notifyAll() {
+  listeners.forEach(fn => fn())
+}
+
+export function broadcastUpdate() {
+  if (!import.meta.env.VITE_SUPABASE_URL) return
+  supabase.channel('tobet-updates').send({
+    type: 'broadcast',
+    event: 'update',
+    payload: {},
+  })
+}
+
+// Single global channel — set up once at module load
+if (import.meta.env.VITE_SUPABASE_URL) {
+  supabase
+    .channel('tobet-updates')
+    .on('broadcast', { event: 'update' }, notifyAll)
+    .subscribe()
+}

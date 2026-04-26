@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { db } from '../lib/db'
+import { broadcastUpdate } from '../lib/realtimeChannel'
 import type { PlaceBetInput } from '../lib/types'
 
 export function useBets(): {
@@ -16,6 +17,7 @@ export function useBets(): {
     setError(null)
     try {
       await db.placeBet(input)
+      broadcastUpdate()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {

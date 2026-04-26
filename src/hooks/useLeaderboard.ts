@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/db'
+import { onUpdate } from '../lib/realtimeChannel'
 import type { Profile, UserRole } from '../lib/types'
 
 interface LeaderboardState {
@@ -24,6 +25,8 @@ export function useLeaderboard(): LeaderboardState {
   useEffect(() => {
     fetchProfiles()
   }, [fetchProfiles])
+
+  useEffect(() => onUpdate(fetchProfiles), [fetchProfiles])
 
   const updateRole = useCallback(async (userId: string, role: UserRole) => {
     await db.updateProfileRole(userId, role)
