@@ -18,5 +18,9 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // react-hooks v7 flags all synchronous setState in effects, including valid async fetch patterns
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
 ])

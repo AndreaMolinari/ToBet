@@ -282,19 +282,19 @@ class SupabaseRepository implements Repository {
     return data as unknown as Event | null
   }
 
-  async createEvent(_input: CreateEventInput, _createdBy: string): Promise<Event> {
+  async createEvent(): Promise<Event> {
     throw new Error('not implemented')
   }
 
-  async settleEvent(_input: SettleEventInput): Promise<Event> {
+  async settleEvent(): Promise<Event> {
     throw new Error('not implemented')
   }
 
-  async placeBet(_input: PlaceBetInput): Promise<Bet> {
+  async placeBet(): Promise<Bet> {
     throw new Error('not implemented')
   }
 
-  async cancelBet(_betId: string): Promise<void> {
+  async cancelBet(): Promise<void> {
     throw new Error('not implemented')
   }
 }
