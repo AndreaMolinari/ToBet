@@ -7,6 +7,7 @@ import { Logo } from './components/Logo'
 import { Leaderboard } from './components/Leaderboard'
 import { EventCard } from './components/EventCard'
 import { EventForm } from './components/EventForm'
+import { toast } from './lib/toast'
 import type { CreateEventInput, SettleEventInput, PlaceBetInput } from './lib/types'
 
 export default function App() {
@@ -21,27 +22,45 @@ export default function App() {
 
   async function handleCreateEvent(input: CreateEventInput) {
     if (!user) return
-    await createEvent(input, user.id)
-    setShowEventForm(false)
+    try {
+      await createEvent(input, user.id)
+      setShowEventForm(false)
+      toast.success('Scommessa creata!')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nella creazione')
+    }
   }
 
   async function handleBet(outcomeId: string, stake: number) {
     if (!user) return
     const input: PlaceBetInput = { outcome_id: outcomeId, user_id: user.id, stake }
-    await placeBet(input)
-    await refreshOpen()
-    await refreshSettled()
+    try {
+      await placeBet(input)
+      refreshOpen()
+      toast.success('Scommessa piazzata!')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nel piazzare la scommessa')
+    }
   }
 
   async function handleSettle(input: SettleEventInput) {
-    await settleEvent(input)
-    await refreshSettled()
+    try {
+      await settleEvent(input)
+      refreshSettled()
+      toast.success('Evento chiuso!')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nel chiudere l\'evento')
+    }
   }
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault()
-    await signInWithMagicLink(email)
-    setEmailSent(true)
+    try {
+      await signInWithMagicLink(email)
+      setEmailSent(true)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nell\'invio del link')
+    }
   }
 
   if (authLoading) {

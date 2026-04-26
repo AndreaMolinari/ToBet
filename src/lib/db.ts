@@ -282,20 +282,49 @@ class SupabaseRepository implements Repository {
     return data as unknown as Event | null
   }
 
-  async createEvent(): Promise<Event> {
-    throw new Error('not implemented')
+  async createEvent(input: CreateEventInput, createdBy: string): Promise<Event> {
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .insert({ title: input.title, description: input.description, mode: input.mode, created_by: createdBy })
+      .select('id')
+      .single()
+    if (eventError) throw eventError
+
+    const { error: outcomesError } = await supabase
+      .from('outcomes')
+      .insert(input.outcomes.map(o => ({ event_id: event.id, label: o.label, odds: o.odds })))
+    if (outcomesError) throw outcomesError
+
+    const created = await this.getEvent(event.id)
+    if (!created) throw new Error('Event not found after creation')
+    return created
   }
 
-  async settleEvent(): Promise<Event> {
-    throw new Error('not implemented')
+  async settleEvent(input: SettleEventInput): Promise<Event> {
+    const { error } = await supabase.rpc('settle_event', {
+      p_event_id: input.event_id,
+      p_winning_outcome_ids: input.winning_outcome_ids,
+    })
+    if (error) throw error
+
+    const settled = await this.getEvent(input.event_id)
+    if (!settled) throw new Error('Event not found after settlement')
+    return settled
   }
 
-  async placeBet(): Promise<Bet> {
-    throw new Error('not implemented')
+  async placeBet(input: PlaceBetInput): Promise<Bet> {
+    const { data, error } = await supabase
+      .from('bets')
+      .insert({ outcome_id: input.outcome_id, user_id: input.user_id, stake: input.stake })
+      .select()
+      .single()
+    if (error) throw error
+    return data as Bet
   }
 
-  async cancelBet(): Promise<void> {
-    throw new Error('not implemented')
+  async cancelBet(betId: string): Promise<void> {
+    const { error } = await supabase.from('bets').delete().eq('id', betId)
+    if (error) throw error
   }
 }
 
