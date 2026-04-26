@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { settleEvent as computeSettlement } from './settlement'
 import type {
+  AddOutcomeInput,
   Bet,
   CreateEventInput,
   Event,
@@ -8,6 +9,7 @@ import type {
   PlaceBetInput,
   Profile,
   SettleEventInput,
+  UserRole,
 } from './types'
 
 // ---------------------------------------------------------------------------
@@ -18,13 +20,17 @@ interface Repository {
   getProfiles(): Promise<Profile[]>
   getProfile(id: string): Promise<Profile | null>
 
-  getEvents(status?: EventStatus): Promise<Event[]>
+  getEvents(status?: EventStatus, includeHidden?: boolean): Promise<Event[]>
   getEvent(id: string): Promise<Event | null>
   createEvent(input: CreateEventInput, createdBy: string): Promise<Event>
+  addOutcome(input: AddOutcomeInput): Promise<string>
+  deleteEvent(eventId: string, refund?: boolean): Promise<void>
+  hideEvent(eventId: string, hidden: boolean): Promise<void>
   settleEvent(input: SettleEventInput): Promise<Event>
 
   placeBet(input: PlaceBetInput): Promise<Bet>
   cancelBet(betId: string): Promise<void>
+  updateProfileRole(userId: string, role: UserRole): Promise<void>
 }
 
 // ---------------------------------------------------------------------------
@@ -52,6 +58,7 @@ export class InMemoryRepository implements Repository {
       title: 'Chi vince il derby?',
       mode: 'single',
       status: 'open',
+      hidden: false,
       created_by: 'user-1',
       created_at: now(),
       outcomes: [
@@ -95,6 +102,7 @@ export class InMemoryRepository implements Repository {
       title: 'GP Monaco: pole position',
       mode: 'single',
       status: 'settled',
+      hidden: false,
       created_by: 'user-1',
       created_at: now(),
       settled_at: now(),
@@ -147,8 +155,10 @@ export class InMemoryRepository implements Repository {
     return this.profiles.find((p) => p.id === id) ?? null
   }
 
-  async getEvents(status?: EventStatus): Promise<Event[]> {
-    return status ? this.events.filter((e) => e.status === status) : [...this.events]
+  async getEvents(status?: EventStatus, includeHidden = false): Promise<Event[]> {
+    return this.events.filter((e) =>
+      (!status || e.status === status) && (includeHidden || !e.hidden)
+    )
   }
 
   async getEvent(id: string): Promise<Event | null> {
@@ -163,6 +173,7 @@ export class InMemoryRepository implements Repository {
       description: input.description,
       mode: input.mode,
       status: 'open',
+      hidden: false,
       created_by: createdBy,
       created_at: now(),
       outcomes: input.outcomes.map((o) => ({
@@ -176,6 +187,40 @@ export class InMemoryRepository implements Repository {
     }
     this.events.push(event)
     return event
+  }
+
+  async addOutcome(input: AddOutcomeInput): Promise<string> {
+    const event = this.events.find((e) => e.id === input.event_id)
+    if (!event) throw new Error(`Event ${input.event_id} not found`)
+    const id = uuid()
+    event.outcomes.push({ id, event_id: input.event_id, label: input.label, odds: input.odds, created_at: now(), bets: [] })
+    return id
+  }
+
+  async deleteEvent(eventId: string, refund = false): Promise<void> {
+    const idx = this.events.findIndex((e) => e.id === eventId)
+    if (idx === -1) throw new Error(`Event ${eventId} not found`)
+    if (refund) {
+      const event = this.events[idx]
+      for (const outcome of event.outcomes) {
+        for (const bet of outcome.bets) {
+          if (bet.pnl !== undefined) {
+            const profile = this.profiles.find((p) => p.id === bet.user_id)
+            if (profile) {
+              profile.balance -= bet.pnl
+              if (outcome.won) { profile.wins -= 1 } else { profile.losses -= 1 }
+            }
+          }
+        }
+      }
+    }
+    this.events.splice(idx, 1)
+  }
+
+  async hideEvent(eventId: string, hidden: boolean): Promise<void> {
+    const event = this.events.find((e) => e.id === eventId)
+    if (!event) throw new Error(`Event ${eventId} not found`)
+    event.hidden = hidden
   }
 
   async settleEvent(input: SettleEventInput): Promise<Event> {
@@ -221,6 +266,12 @@ export class InMemoryRepository implements Repository {
     }
     throw new Error(`Bet ${betId} not found`)
   }
+
+  async updateProfileRole(userId: string, role: UserRole): Promise<void> {
+    const profile = this.profiles.find((p) => p.id === userId)
+    if (!profile) throw new Error(`Profile ${userId} not found`)
+    profile.role = role
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -228,7 +279,7 @@ export class InMemoryRepository implements Repository {
 // ---------------------------------------------------------------------------
 
 const OUTCOMES_WITH_BETS = 'id, event_id, label, odds, won, created_at, bets(*)'
-const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
+const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
 
 class SupabaseRepository implements Repository {
   async getProfiles(): Promise<Profile[]> {
@@ -243,9 +294,10 @@ class SupabaseRepository implements Repository {
     return data as Profile | null
   }
 
-  async getEvents(status?: EventStatus): Promise<Event[]> {
+  async getEvents(status?: EventStatus, includeHidden = false): Promise<Event[]> {
     let query = supabase.from('events').select(EVENTS_WITH_OUTCOMES)
     if (status) query = query.eq('status', status)
+    if (!includeHidden) query = query.eq('hidden', false)
     const { data, error } = await query
     if (error) throw error
     return data as unknown as Event[]
@@ -279,6 +331,31 @@ class SupabaseRepository implements Repository {
     return created
   }
 
+  async addOutcome(input: AddOutcomeInput): Promise<string> {
+    const { data, error } = await supabase
+      .from('outcomes')
+      .insert({ event_id: input.event_id, label: input.label, odds: input.odds })
+      .select('id')
+      .single()
+    if (error) throw error
+    return data.id
+  }
+
+  async deleteEvent(eventId: string, refund = false): Promise<void> {
+    if (refund) {
+      const { error } = await supabase.rpc('delete_event_with_refund', { p_event_id: eventId })
+      if (error) throw error
+    } else {
+      const { error } = await supabase.from('events').delete().eq('id', eventId)
+      if (error) throw error
+    }
+  }
+
+  async hideEvent(eventId: string, hidden: boolean): Promise<void> {
+    const { error } = await supabase.from('events').update({ hidden }).eq('id', eventId)
+    if (error) throw error
+  }
+
   async settleEvent(input: SettleEventInput): Promise<Event> {
     const { error } = await supabase.rpc('settle_event', {
       p_event_id: input.event_id,
@@ -303,6 +380,11 @@ class SupabaseRepository implements Repository {
 
   async cancelBet(betId: string): Promise<void> {
     const { error } = await supabase.from('bets').delete().eq('id', betId)
+    if (error) throw error
+  }
+
+  async updateProfileRole(userId: string, role: UserRole): Promise<void> {
+    const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
     if (error) throw error
   }
 }

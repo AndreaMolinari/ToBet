@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/db'
-import type { Profile } from '../lib/types'
+import type { Profile, UserRole } from '../lib/types'
 
 interface LeaderboardState {
   profiles: Profile[]
   loading: boolean
   error: string | null
+  updateRole: (userId: string, role: UserRole) => Promise<void>
 }
 
 export function useLeaderboard(): LeaderboardState {
@@ -13,12 +14,21 @@ export function useLeaderboard(): LeaderboardState {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    db.getProfiles()
+  const fetchProfiles = useCallback(() => {
+    return db.getProfiles()
       .then((data) => setProfiles([...data].sort((a, b) => b.balance - a.balance)))
       .catch((err) => setError(err instanceof Error ? err.message : 'Unknown error'))
       .finally(() => setLoading(false))
   }, [])
 
-  return { profiles, loading, error }
+  useEffect(() => {
+    fetchProfiles()
+  }, [fetchProfiles])
+
+  const updateRole = useCallback(async (userId: string, role: UserRole) => {
+    await db.updateProfileRole(userId, role)
+    await fetchProfiles()
+  }, [fetchProfiles])
+
+  return { profiles, loading, error, updateRole }
 }

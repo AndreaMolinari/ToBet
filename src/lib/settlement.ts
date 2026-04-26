@@ -3,7 +3,6 @@ import type { Bet, Event, Outcome } from './types'
 export function calculatePnl(bet: Bet, outcome: Outcome): number {
   if (outcome.won === true) return bet.stake * outcome.odds
   if (outcome.won === false) return -bet.stake
-  // won === undefined → pending, no pnl
   return 0
 }
 

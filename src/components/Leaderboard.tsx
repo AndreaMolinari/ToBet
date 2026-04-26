@@ -1,10 +1,13 @@
-import type { Profile } from '../lib/types'
+import type { Profile, UserRole } from '../lib/types'
 
 interface Props {
   profiles: Profile[]
+  currentUserId?: string
+  isAdmin?: boolean
+  onRoleChange?: (userId: string, role: UserRole) => void
 }
 
-export function Leaderboard({ profiles }: Props) {
+export function Leaderboard({ profiles, currentUserId, isAdmin, onRoleChange }: Props) {
   const cols = Math.min(profiles.length, 3)
 
   return (
@@ -27,6 +30,7 @@ export function Leaderboard({ profiles }: Props) {
         {profiles.map((p) => {
           const balanceColor = p.balance >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
           const balanceSign = p.balance >= 0 ? '+' : ''
+          const isSelf = p.id === currentUserId
 
           return (
             <div key={p.id} style={{
@@ -47,6 +51,43 @@ export function Leaderboard({ profiles }: Props) {
               <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                 {p.wins} vinte
               </div>
+              {isAdmin && !isSelf && onRoleChange && (
+                p.role === 'player' ? (
+                  <button
+                    onClick={() => onRoleChange(p.id, 'admin')}
+                    style={{
+                      marginTop: 4,
+                      background: 'var(--color-accent)',
+                      color: '#000',
+                      border: 'none',
+                      borderRadius: 'var(--border-radius-full)',
+                      padding: '5px 10px',
+                      fontSize: 11,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Promuovi admin
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onRoleChange(p.id, 'player')}
+                    style={{
+                      marginTop: 4,
+                      background: 'transparent',
+                      color: 'var(--color-danger)',
+                      border: '0.5px solid var(--color-danger)',
+                      borderRadius: 'var(--border-radius-full)',
+                      padding: '5px 10px',
+                      fontSize: 10,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Rimuovi admin
+                  </button>
+                )
+              )}
             </div>
           )
         })}

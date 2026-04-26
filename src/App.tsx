@@ -7,18 +7,20 @@ import { Logo } from './components/Logo'
 import { Leaderboard } from './components/Leaderboard'
 import { EventCard } from './components/EventCard'
 import { EventForm } from './components/EventForm'
+import { Archive } from './components/Archive'
 import { toast } from './lib/toast'
-import type { CreateEventInput, SettleEventInput, PlaceBetInput } from './lib/types'
+import type { CreateEventInput, SettleEventInput, PlaceBetInput, UserRole } from './lib/types'
 
 export default function App() {
   const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut } = useAuth()
-  const { events: openEvents, createEvent, settleEvent, refresh: refreshOpen } = useEvents('open')
-  const { events: settledEvents, refresh: refreshSettled } = useEvents('settled')
+  const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, refresh: refreshOpen } = useEvents('open')
+  const { refresh: refreshSettled } = useEvents('settled')
   const { placeBet } = useBets()
-  const { profiles } = useLeaderboard()
+  const { profiles, updateRole } = useLeaderboard()
   const [showEventForm, setShowEventForm] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
+  const [tab, setTab] = useState<'home' | 'archive' | 'admin'>('home')
 
   async function handleCreateEvent(input: CreateEventInput) {
     if (!user) return
@@ -43,6 +45,29 @@ export default function App() {
     }
   }
 
+  async function handleAddOutcome(eventId: string, label: string, odds: number, stake: number) {
+    if (!user) return
+    try {
+      const outcomeId = await addOutcome({ event_id: eventId, label, odds })
+      const input: PlaceBetInput = { outcome_id: outcomeId, user_id: user.id, stake }
+      await placeBet(input)
+      refreshOpen()
+      toast.success('Outcome aggiunto e scommessa piazzata!')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore')
+    }
+  }
+
+  async function handleDeleteEvent(eventId: string) {
+    try {
+      await deleteEvent(eventId)
+      refreshSettled()
+      toast.success('Scommessa eliminata')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nell\'eliminazione')
+    }
+  }
+
   async function handleSettle(input: SettleEventInput) {
     try {
       await settleEvent(input)
@@ -50,6 +75,15 @@ export default function App() {
       toast.success('Evento chiuso!')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nel chiudere l\'evento')
+    }
+  }
+
+  async function handleRoleChange(userId: string, role: UserRole) {
+    try {
+      await updateRole(userId, role)
+      toast.success(role === 'admin' ? 'Utente promosso ad admin' : 'Admin rimosso')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nel cambio ruolo')
     }
   }
 
@@ -154,10 +188,18 @@ export default function App() {
     )
   }
 
+  const isAdmin = user.role === 'admin'
+
+  const tabs = [
+    { key: 'home' as const, label: 'Home' },
+    { key: 'archive' as const, label: 'Archivio' },
+    ...(isAdmin ? [{ key: 'admin' as const, label: 'Admin' }] : []),
+  ]
+
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 80px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <Logo />
         <button
           onClick={signOut}
@@ -173,65 +215,94 @@ export default function App() {
         </button>
       </div>
 
-      {/* Leaderboard */}
-      <Leaderboard profiles={profiles} />
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 28, borderBottom: '0.5px solid var(--color-border-tertiary)', paddingBottom: 0 }}>
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: tab === t.key ? '2px solid var(--color-accent)' : '2px solid transparent',
+              color: tab === t.key ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+              fontSize: 13,
+              fontWeight: tab === t.key ? 600 : 400,
+              padding: '6px 14px',
+              cursor: 'pointer',
+              marginBottom: -1,
+              transition: 'color 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {/* Open events */}
-      {openEvents.length > 0 && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
-            Aperte
-          </div>
-          {openEvents.map(event => (
-            <EventCard
-              key={event.id}
-              event={event}
-              currentUserId={user.id}
-              isAdmin={user.role === 'admin'}
-              onBet={(outcomeId, stake) => handleBet(outcomeId, stake)}
-              onSettle={(winningOutcomeIds) => handleSettle({ event_id: event.id, winning_outcome_ids: winningOutcomeIds })}
-            />
-          ))}
-        </div>
+      {/* Home tab */}
+      {tab === 'home' && (
+        <>
+          <Leaderboard profiles={profiles} currentUserId={user.id} />
+
+          {openEvents.length > 0 ? (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+                Aperte
+              </div>
+              {openEvents.map(event => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  currentUserId={user.id}
+                  isAdmin={isAdmin}
+                  onBet={(outcomeId, stake) => handleBet(outcomeId, stake)}
+                  onSettle={(winningOutcomeIds) => handleSettle({ event_id: event.id, winning_outcome_ids: winningOutcomeIds })}
+                  onDelete={() => handleDeleteEvent(event.id)}
+                  onAddOutcome={(label, odds, stake) => handleAddOutcome(event.id, label, odds, stake)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: 'var(--color-text-tertiary)', fontSize: 13, textAlign: 'center', marginTop: '3rem' }}>
+              Nessuna scommessa aperta
+            </p>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+              <button
+                onClick={() => setShowEventForm(true)}
+                style={{
+                  background: 'var(--color-accent)',
+                  color: '#000',
+                  border: 'none',
+                  padding: '12px 32px',
+                  borderRadius: 30,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                + Nuova scommessa
+              </button>
+            </div>
+        </>
       )}
 
-      {/* Settled events */}
-      {settledEvents.length > 0 && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
-            Chiuse
-          </div>
-          {settledEvents.map(event => (
-            <EventCard
-              key={event.id}
-              event={event}
-              currentUserId={user.id}
-              onBet={() => {}}
-              onSettle={() => {}}
-            />
-          ))}
-        </div>
+      {/* Archive tab */}
+      {tab === 'archive' && (
+        <Archive currentUserId={user.id} isAdmin={isAdmin} />
       )}
 
-      {/* FAB — solo admin */}
-      {user.role === 'admin' && <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-        <button
-          onClick={() => setShowEventForm(true)}
-          style={{
-            background: 'var(--color-accent)',
-            color: '#000',
-            border: 'none',
-            padding: '12px 32px',
-            borderRadius: 30,
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: 'pointer',
-            letterSpacing: '0.5px',
-          }}
-        >
-          + Nuova scommessa
-        </button>
-      </div>}
+      {/* Admin tab */}
+      {tab === 'admin' && isAdmin && (
+        <Leaderboard
+          profiles={profiles}
+          currentUserId={user.id}
+          isAdmin={true}
+          onRoleChange={handleRoleChange}
+        />
+      )}
 
       {showEventForm && (
         <EventForm

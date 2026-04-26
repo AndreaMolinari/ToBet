@@ -42,6 +42,7 @@ export interface Event {
   created_by: string
   created_at: string
   settled_at?: string
+  hidden: boolean
   outcomes: Outcome[]
 }
 
@@ -50,6 +51,12 @@ export interface CreateEventInput {
   description?: string
   mode: EventMode
   outcomes: { label: string; odds: number }[]
+}
+
+export interface AddOutcomeInput {
+  event_id: string
+  label: string
+  odds: number
 }
 
 export interface PlaceBetInput {
