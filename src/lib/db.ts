@@ -330,20 +330,22 @@ const OUTCOMES_WITH_BETS = 'id, event_id, label, odds, won, created_at, bets(*)'
 const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, tags, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
 
 class SupabaseRepository implements Repository {
+  private get client() { return supabase! }
+
   async getProfiles(): Promise<Profile[]> {
-    const { data, error } = await supabase.from('profiles').select('*')
+    const { data, error } = await this.client.from('profiles').select('*')
     if (error) throw error
     return data as Profile[]
   }
 
   async getProfile(id: string): Promise<Profile | null> {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
+    const { data, error } = await this.client.from('profiles').select('*').eq('id', id).maybeSingle()
     if (error) throw error
     return data as Profile | null
   }
 
   async getEvents(status?: EventStatus, includeHidden = false, userTags?: string[]): Promise<Event[]> {
-    let query = supabase.from('events').select(EVENTS_WITH_OUTCOMES).order('created_at', { ascending: false })
+    let query = this.client.from('events').select(EVENTS_WITH_OUTCOMES).order('created_at', { ascending: false })
     if (status) query = query.eq('status', status)
     if (!includeHidden) query = query.eq('hidden', false)
     const { data, error } = await query
@@ -393,21 +395,21 @@ class SupabaseRepository implements Repository {
 
   async deleteEvent(eventId: string, refund = false): Promise<void> {
     if (refund) {
-      const { error } = await supabase.rpc('delete_event_with_refund', { p_event_id: eventId })
+      const { error } = await this.client.rpc('delete_event_with_refund', { p_event_id: eventId })
       if (error) throw error
     } else {
-      const { error } = await supabase.from('events').delete().eq('id', eventId)
+      const { error } = await this.client.from('events').delete().eq('id', eventId)
       if (error) throw error
     }
   }
 
   async hideEvent(eventId: string, hidden: boolean): Promise<void> {
-    const { error } = await supabase.from('events').update({ hidden }).eq('id', eventId)
+    const { error } = await this.client.from('events').update({ hidden }).eq('id', eventId)
     if (error) throw error
   }
 
   async settleEvent(input: SettleEventInput): Promise<Event> {
-    const { error } = await supabase.rpc('settle_event', {
+    const { error } = await this.client.rpc('settle_event', {
       p_event_id: input.event_id,
       p_winning_outcome_ids: input.winning_outcome_ids,
     })
@@ -429,23 +431,23 @@ class SupabaseRepository implements Repository {
   }
 
   async cancelBet(betId: string): Promise<void> {
-    const { error } = await supabase.from('bets').delete().eq('id', betId)
+    const { error } = await this.client.from('bets').delete().eq('id', betId)
     if (error) throw error
   }
 
   async updateProfileRole(userId: string, role: UserRole): Promise<void> {
-    const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
+    const { error } = await this.client.from('profiles').update({ role }).eq('id', userId)
     if (error) throw error
   }
 
   async updateProfileTags(userId: string, tags: string[]): Promise<void> {
-    const { error } = await supabase.from('profiles').update({ tags }).eq('id', userId)
+    const { error } = await this.client.from('profiles').update({ tags }).eq('id', userId)
     if (error) throw error
   }
 
   async acceptTerms(userId: string): Promise<void> {
     const ts = new Date().toISOString()
-    const { error } = await supabase.from('profiles').update({
+    const { error } = await this.client.from('profiles').update({
       accepted_privacy_at: ts,
       accepted_rules_at: ts,
     }).eq('id', userId)
@@ -453,18 +455,18 @@ class SupabaseRepository implements Repository {
   }
 
   async getTags(): Promise<Tag[]> {
-    const { data, error } = await supabase.from('tags').select('*').order('name')
+    const { data, error } = await this.client.from('tags').select('*').order('name')
     if (error) throw error
     return data as Tag[]
   }
 
   async createTag(tag: Tag): Promise<void> {
-    const { error } = await supabase.from('tags').insert(tag)
+    const { error } = await this.client.from('tags').insert(tag)
     if (error) throw error
   }
 
   async deleteTag(name: string): Promise<void> {
-    const { error } = await supabase.from('tags').delete().eq('name', name)
+    const { error } = await this.client.from('tags').delete().eq('name', name)
     if (error) throw error
   }
 }
