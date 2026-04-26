@@ -53,7 +53,7 @@ export default function App() {
     }
   }
 
-  async function handleMagicLink(e: React.FormEvent) {
+  async function handleMagicLink(e: React.SyntheticEvent) {
     e.preventDefault()
     try {
       await signInWithMagicLink(email)
