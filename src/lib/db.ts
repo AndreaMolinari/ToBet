@@ -334,7 +334,7 @@ class SupabaseRepository implements Repository {
   }
 
   async getEvents(status?: EventStatus, includeHidden = false, userTags?: string[]): Promise<Event[]> {
-    let query = supabase.from('events').select(EVENTS_WITH_OUTCOMES)
+    let query = supabase.from('events').select(EVENTS_WITH_OUTCOMES).order('created_at', { ascending: false })
     if (status) query = query.eq('status', status)
     if (!includeHidden) query = query.eq('hidden', false)
     const { data, error } = await query

@@ -30,6 +30,7 @@ export function useBets(): {
     setError(null)
     try {
       await db.cancelBet(betId)
+      broadcastUpdate()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {

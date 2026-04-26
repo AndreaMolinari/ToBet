@@ -9,6 +9,7 @@ import { Leaderboard } from './components/Leaderboard'
 import { EventCard } from './components/EventCard'
 import { EventForm } from './components/EventForm'
 import { Archive } from './components/Archive'
+import { MyBets } from './components/MyBets'
 import { TagManager } from './components/TagManager'
 import { toast } from './lib/toast'
 import type { CreateEventInput, SettleEventInput, PlaceBetInput, Tag, UserRole } from './lib/types'
@@ -24,7 +25,7 @@ export default function App() {
   const [showEventForm, setShowEventForm] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
-  const [tab, setTab] = useState<'home' | 'archive' | 'admin'>('home')
+  const [tab, setTab] = useState<'home' | 'archive' | 'mybets' | 'admin'>('home')
 
   async function handleCreateEvent(input: CreateEventInput) {
     if (!user) return
@@ -225,6 +226,7 @@ export default function App() {
   const tabs = [
     { key: 'home' as const, label: 'Home' },
     { key: 'archive' as const, label: 'Archivio' },
+    { key: 'mybets' as const, label: 'Le mie' },
     ...(isAdmin ? [{ key: 'admin' as const, label: 'Admin' }] : []),
   ]
 
@@ -287,6 +289,7 @@ export default function App() {
                   event={event}
                   currentUserId={user.id}
                   isAdmin={isAdmin}
+                  profiles={profiles}
                   onBet={(outcomeId, stake) => handleBet(outcomeId, stake)}
                   onSettle={(winningOutcomeIds) => handleSettle({ event_id: event.id, winning_outcome_ids: winningOutcomeIds })}
                   onDelete={() => handleDeleteEvent(event.id)}
@@ -323,8 +326,11 @@ export default function App() {
 
       {/* Archive tab */}
       {tab === 'archive' && (
-        <Archive currentUserId={user.id} isAdmin={isAdmin} />
+        <Archive currentUserId={user.id} isAdmin={isAdmin} profiles={profiles} userTags={userTags} />
       )}
+
+      {/* My bets tab */}
+      {tab === 'mybets' && <MyBets userId={user.id} />}
 
       {/* Admin tab */}
       {tab === 'admin' && isAdmin && (

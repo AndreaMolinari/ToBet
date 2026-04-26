@@ -119,7 +119,7 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
       }}>
         Leaderboard
       </div>
-      <div style={{
+      <div className="leaderboard-grid" style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
         gap: 10,

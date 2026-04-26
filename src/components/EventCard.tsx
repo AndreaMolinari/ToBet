@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import type { Event } from '../lib/types'
+import type { Event, Profile } from '../lib/types'
 import { SettleModal } from './SettleModal'
 
 interface Props {
   event: Event
   currentUserId?: string
   isAdmin?: boolean
+  profiles?: Profile[]
   onBet: (outcomeId: string, stake: number) => void
   onSettle: (winningOutcomeIds: string[]) => void
   onDelete?: () => void
@@ -21,7 +22,10 @@ function formatDate(iso: string): string {
   })
 }
 
-export function EventCard({ event, currentUserId, isAdmin, onBet, onSettle, onDelete, onAddOutcome, onHide }: Props) {
+export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSettle, onDelete, onAddOutcome, onHide }: Props) {
+  function displayName(userId: string): string {
+    return profiles?.find(p => p.id === userId)?.display_name ?? userId.slice(0, 8)
+  }
   const [showSettle, setShowSettle] = useState(false)
   const [showAddOutcome, setShowAddOutcome] = useState(false)
   const [newLabel, setNewLabel] = useState('')
@@ -97,7 +101,7 @@ export function EventCard({ event, currentUserId, isAdmin, onBet, onSettle, onDe
             const userBet = currentUserId
               ? outcome.bets.find((b) => b.user_id === currentUserId)
               : undefined
-            const bettors = outcome.bets.map((b) => b.user_id)
+            const bettors = outcome.bets.map((b) => displayName(b.user_id))
             const isWinner = outcome.won === true
 
             const canBet = isOpen && !userBet
@@ -113,14 +117,14 @@ export function EventCard({ event, currentUserId, isAdmin, onBet, onSettle, onDe
             }
 
             return (
-              <div key={outcome.id} style={rowStyle}>
+              <div key={outcome.id} className="outcome-row" style={rowStyle}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)' }}>
                     {outcome.label}
                   </div>
                   {bettors.length > 0 && (
                     <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
-                      {bettors.length} {bettors.length === 1 ? 'scommessa' : 'scommesse'}
+                      {bettors.join(', ')}
                     </div>
                   )}
                   {userBet && isSettled && userBet.pnl !== undefined && (
@@ -150,7 +154,7 @@ export function EventCard({ event, currentUserId, isAdmin, onBet, onSettle, onDe
                   </div>
                 )}
                 {canBet && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <div className="outcome-bet-controls" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                     <input
                       type="number"
                       min={0.5}

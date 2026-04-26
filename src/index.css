@@ -41,3 +41,19 @@ textarea,
 select {
   font-family: inherit;
 }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .leaderboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .outcome-row {
+    flex-wrap: wrap;
+  }
+
+  .outcome-bet-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

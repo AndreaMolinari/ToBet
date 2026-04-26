@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useEvents } from '../hooks/useEvents'
 import { EventCard } from './EventCard'
 import { toast } from '../lib/toast'
-import type { PlaceBetInput } from '../lib/types'
+import type { PlaceBetInput, Profile } from '../lib/types'
 import { useBets } from '../hooks/useBets'
 
 const PAGE_SIZE = 10
@@ -12,10 +12,12 @@ type Filter = 'all' | 'visible' | 'hidden'
 interface Props {
   currentUserId: string
   isAdmin: boolean
+  profiles?: Profile[]
+  userTags?: string[]
 }
 
-export function Archive({ currentUserId, isAdmin }: Props) {
-  const { events, deleteEvent, hideEvent, refresh } = useEvents('settled', isAdmin)
+export function Archive({ currentUserId, isAdmin, profiles, userTags }: Props) {
+  const { events, deleteEvent, hideEvent, refresh } = useEvents('settled', isAdmin, userTags)
   const { placeBet } = useBets()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
@@ -159,6 +161,7 @@ export function Archive({ currentUserId, isAdmin }: Props) {
                 event={event}
                 currentUserId={currentUserId}
                 isAdmin={isAdmin}
+                profiles={profiles}
                 onBet={handleBet}
                 onSettle={() => {}}
                 onDelete={isAdmin ? () => setConfirmDeleteId(event.id) : undefined}
