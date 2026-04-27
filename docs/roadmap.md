@@ -53,7 +53,7 @@
 
 ## Bug noti
 
-- [ ] Assegnazione tag agli utenti non funziona — admin non riesce ad aggiungere tag a un utente
+- [x] Assegnazione tag agli utenti non funziona — admin non riesce ad aggiungere tag a un utente
 
 ---
 
