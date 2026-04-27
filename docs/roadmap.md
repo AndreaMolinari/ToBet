@@ -48,6 +48,11 @@
 - [x] Storico personale — tab "Le mie" con P&L summary e lista scommesse
 - [x] Realtime: eventi, scommesse e leaderboard aggiornati live
 - [x] Mobile responsive (leaderboard 2 col, outcome row wrappato)
+- [x] Mobile: blocco auto-zoom su input, tap target minimi 44px
+
+### Auth & deploy
+- [x] Fix magic link redirect su GitHub Pages (pathname mancante nel redirectTo)
+- [x] Fix realtime self-broadcast — admin ora riceve i propri aggiornamenti dopo settlement
 
 ---
 
@@ -66,8 +71,8 @@
 
 ### Tecnico
 - [ ] `useBets.ts` — pattern setLoading/try/catch/finally duplicato tra `placeBet` e `cancelBet`, estrarre in factory se si aggiungono altre operazioni
-- [ ] GitHub Pages deploy — configurare `.github/workflows/deploy.yml`
-- [ ] Release automatica con conventional commits (release-please)
+- [x] GitHub Pages deploy — configurare `.github/workflows/deploy.yml`
+- [x] Release automatica con conventional commits (release-please)
 - [ ] Generare tipi TypeScript da Supabase schema (`supabase gen types`)
 - [ ] RLS opzionale sui tag — bloccare visibilità anche lato DB (ora solo in app)
 
