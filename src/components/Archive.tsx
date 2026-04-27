@@ -4,6 +4,7 @@ import { EventCard } from './EventCard'
 import { toast } from '../lib/toast'
 import type { PlaceBetInput, Profile } from '../lib/types'
 import { useBets } from '../hooks/useBets'
+import { sectionLabelStyle, emptyStateStyle } from '../lib/styles'
 
 const PAGE_SIZE = 10
 
@@ -114,14 +115,12 @@ export function Archive({ currentUserId, isAdmin, profiles, userTags }: Props) {
       )}
 
       {/* Label */}
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+      <div style={sectionLabelStyle}>
         Chiuse {filtered.length > 0 && `(${filtered.length})`}
       </div>
 
       {visible.length === 0 ? (
-        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 13, textAlign: 'center', marginTop: '2rem' }}>
-          Nessuna scommessa
-        </p>
+        <p style={emptyStateStyle}>Nessuna scommessa</p>
       ) : (
         <>
           {visible.map((event) => (

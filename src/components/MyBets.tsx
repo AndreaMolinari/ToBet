@@ -1,4 +1,5 @@
 import { useMyBets } from '../hooks/useMyBets'
+import { emptyStateStyle } from '../lib/styles'
 
 interface Props {
   userId: string
@@ -11,8 +12,8 @@ function formatDate(iso: string): string {
 export function MyBets({ userId }: Props) {
   const { bets, loading } = useMyBets(userId)
 
-  if (loading) return <p style={{ color: 'var(--color-text-tertiary)', fontSize: 13, textAlign: 'center', marginTop: '2rem' }}>Caricamento...</p>
-  if (bets.length === 0) return <p style={{ color: 'var(--color-text-tertiary)', fontSize: 13, textAlign: 'center', marginTop: '2rem' }}>Nessuna scommessa</p>
+  if (loading) return <p style={emptyStateStyle}>Caricamento...</p>
+  if (bets.length === 0) return <p style={emptyStateStyle}>Nessuna scommessa</p>
 
   const totalPnl = bets.reduce((sum, b) => sum + (b.pnl ?? 0), 0)
   const settled = bets.filter(b => b.outcome.event.status === 'settled')

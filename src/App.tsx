@@ -14,6 +14,7 @@ import { AcceptanceScreen } from './components/AcceptanceScreen'
 import { TagManager } from './components/TagManager'
 import { toast } from './lib/toast'
 import type { CreateEventInput, SettleEventInput, PlaceBetInput, Tag, UserRole } from './lib/types'
+import { sectionLabelStyle } from './lib/styles'
 
 export default function App() {
   const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut, acceptTerms } = useAuth()
@@ -286,7 +287,7 @@ export default function App() {
 
           {openEvents.length > 0 ? (
             <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+              <div style={sectionLabelStyle}>
                 Aperte
               </div>
               {openEvents.map(event => (

@@ -65,6 +65,7 @@
 - [ ] Statistiche: win rate, ROI, streak
 
 ### Tecnico
+- [ ] `useBets.ts` — pattern setLoading/try/catch/finally duplicato tra `placeBet` e `cancelBet`, estrarre in factory se si aggiungono altre operazioni
 - [ ] GitHub Pages deploy — configurare `.github/workflows/deploy.yml`
 - [ ] Release automatica con conventional commits (release-please)
 - [ ] Generare tipi TypeScript da Supabase schema (`supabase gen types`)

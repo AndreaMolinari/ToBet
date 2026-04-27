@@ -7,8 +7,7 @@ interface OutcomeDraft {
 }
 
 interface Props {
-  currentUserId: string
-  availableTags: Tag[]  // tags this user can assign (filtered by user.tags, or all for admin)
+  availableTags: Tag[]
   onSubmit: (input: CreateEventInput) => void
   onClose: () => void
 }

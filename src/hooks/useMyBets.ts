@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export interface MyBet {
+interface MyBet {
   id: string
   stake: number
   pnl?: number
