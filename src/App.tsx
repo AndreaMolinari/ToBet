@@ -356,7 +356,6 @@ export default function App() {
 
       {showEventForm && (
         <EventForm
-          currentUserId={user.id}
           availableTags={availableTags}
           onSubmit={handleCreateEvent}
           onClose={() => setShowEventForm(false)}
