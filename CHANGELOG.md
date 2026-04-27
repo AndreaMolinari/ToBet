@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.3](https://github.com/AndreaMolinari/ToBet/compare/v1.0.2...v1.0.3) (2026-04-27)
+
+
+### Bug Fixes
+
+* allow admin to update any profile via RLS ([9cc0f93](https://github.com/AndreaMolinari/ToBet/commit/9cc0f931d59cf2fb9a2dcc91b54747de43debf58))
+* **mobile:** prevent iOS auto-zoom and increase tap targets ([5d00769](https://github.com/AndreaMolinari/ToBet/commit/5d00769bba21e9446848332812da55bbcb3d29a1))
+* realtime self-broadcast and auth redirect path ([75ded12](https://github.com/AndreaMolinari/ToBet/commit/75ded12ceebeb0cc33926cf48185969b3df3932a))
+* remove stale currentUserId prop from EventForm usage ([a985846](https://github.com/AndreaMolinari/ToBet/commit/a98584665e4f2ab84bed8d75e2a180831abfc6b1))
+
 ## [1.0.2](https://github.com/AndreaMolinari/ToBet/compare/v1.0.1...v1.0.2) (2026-04-26)
 
 
