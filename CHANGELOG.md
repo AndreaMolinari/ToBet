@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/AndreaMolinari/ToBet/compare/v1.0.3...v1.1.0) (2026-04-27)
+
+
+### Features
+
+* add void event mode with stake refund ([2bd0aae](https://github.com/AndreaMolinari/ToBet/commit/2bd0aae40513013e808841e6317d5c8a9ccf8656))
+
 ## [1.0.3](https://github.com/AndreaMolinari/ToBet/compare/v1.0.2...v1.0.3) (2026-04-27)
 
 
