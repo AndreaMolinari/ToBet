@@ -51,6 +51,12 @@
 
 ---
 
+## Bug noti
+
+- [ ] Assegnazione tag agli utenti non funziona — admin non riesce ad aggiungere tag a un utente
+
+---
+
 ## Backlog
 
 ### Funzionalità
