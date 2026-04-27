@@ -34,12 +34,16 @@ button {
   background: none;
   font-family: inherit;
   color: inherit;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 input,
 textarea,
 select {
   font-family: inherit;
+  /* 16px prevents iOS Safari from auto-zooming on focus */
+  font-size: 16px;
 }
 
 /* Mobile */
