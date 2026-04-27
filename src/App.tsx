@@ -19,7 +19,7 @@ import { sectionLabelStyle } from './lib/styles'
 export default function App() {
   const { user, loading: authLoading, authError, signInWithMagicLink, signInWithGoogle, signOut, acceptTerms } = useAuth()
   const userTags = user?.role === 'admin' ? undefined : user?.tags
-  const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
+  const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, voidEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
   const { refresh: refreshSettled } = useEvents('settled', false, userTags)
   const { placeBet } = useBets()
   const { profiles, updateRole, updateTags } = useLeaderboard()
@@ -82,6 +82,16 @@ export default function App() {
       toast.success('Evento chiuso!')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nel chiudere l\'evento')
+    }
+  }
+
+  async function handleVoid(eventId: string) {
+    try {
+      await voidEvent(eventId)
+      refreshSettled()
+      toast.success('Evento annullato, stake rimborsate')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nell\'annullamento')
     }
   }
 
@@ -299,6 +309,7 @@ export default function App() {
                   profiles={profiles}
                   onBet={(outcomeId, stake) => handleBet(outcomeId, stake)}
                   onSettle={(winningOutcomeIds) => handleSettle({ event_id: event.id, winning_outcome_ids: winningOutcomeIds })}
+                  onVoid={() => handleVoid(event.id)}
                   onDelete={() => handleDeleteEvent(event.id)}
                   onAddOutcome={(label, odds, stake) => handleAddOutcome(event.id, label, odds, stake)}
                 />

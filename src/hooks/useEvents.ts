@@ -15,6 +15,7 @@ export function useEvents(status?: EventStatus, includeHidden = false, userTags?
   deleteEvent: (eventId: string, refund?: boolean) => Promise<void>
   hideEvent: (eventId: string, hidden: boolean) => Promise<void>
   settleEvent: (input: SettleEventInput) => Promise<void>
+  voidEvent: (eventId: string) => Promise<void>
   refresh: () => void
 } {
   const [events, setEvents] = useState<Event[]>([])
@@ -75,5 +76,11 @@ export function useEvents(status?: EventStatus, includeHidden = false, userTags?
     broadcastUpdate()
   }
 
-  return { events, loading, error, createEvent, addOutcome, deleteEvent, hideEvent, settleEvent, refresh }
+  async function voidEvent(eventId: string): Promise<void> {
+    await db.voidEvent(eventId)
+    refresh()
+    broadcastUpdate()
+  }
+
+  return { events, loading, error, createEvent, addOutcome, deleteEvent, hideEvent, settleEvent, voidEvent, refresh }
 }

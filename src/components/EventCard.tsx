@@ -9,6 +9,7 @@ interface Props {
   profiles?: Profile[]
   onBet: (outcomeId: string, stake: number) => void
   onSettle: (winningOutcomeIds: string[]) => void
+  onVoid?: () => void
   onDelete?: () => void
   onAddOutcome?: (label: string, odds: number, stake: number) => void
   onHide?: () => void
@@ -22,11 +23,12 @@ function formatDate(iso: string): string {
   })
 }
 
-export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSettle, onDelete, onAddOutcome, onHide }: Props) {
+export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSettle, onVoid, onDelete, onAddOutcome, onHide }: Props) {
   function displayName(userId: string): string {
     return profiles?.find(p => p.id === userId)?.display_name ?? userId.slice(0, 8)
   }
   const [showSettle, setShowSettle] = useState(false)
+  const [showVoidConfirm, setShowVoidConfirm] = useState(false)
   const [showAddOutcome, setShowAddOutcome] = useState(false)
   const [newLabel, setNewLabel] = useState('')
   const [newOdds, setNewOdds] = useState(2)
@@ -244,6 +246,57 @@ export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSe
                 >
                   Chiudi scommessa
                 </button>
+              )}
+              {isAdmin && onVoid && !showVoidConfirm && (
+                <button
+                  onClick={() => setShowVoidConfirm(true)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 'var(--border-radius-md)',
+                    background: 'transparent',
+                    border: '0.5px solid var(--color-border-tertiary)',
+                    fontSize: 12,
+                    color: 'var(--color-text-tertiary)',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Annulla evento
+                </button>
+              )}
+              {isAdmin && onVoid && showVoidConfirm && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Rimborsare le stake?</span>
+                  <button
+                    onClick={() => { onVoid(); setShowVoidConfirm(false) }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 'var(--border-radius-md)',
+                      background: 'var(--color-danger)',
+                      border: 'none',
+                      fontSize: 12,
+                      color: '#fff',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Sì, annulla
+                  </button>
+                  <button
+                    onClick={() => setShowVoidConfirm(false)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 'var(--border-radius-md)',
+                      background: 'transparent',
+                      border: '0.5px solid var(--color-border-tertiary)',
+                      fontSize: 12,
+                      color: 'var(--color-text-tertiary)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    No
+                  </button>
+                </div>
               )}
               {onAddOutcome && !showAddOutcome && (
                 <button

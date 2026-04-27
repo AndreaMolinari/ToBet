@@ -28,6 +28,7 @@ interface Repository {
   deleteEvent(eventId: string, refund?: boolean): Promise<void>
   hideEvent(eventId: string, hidden: boolean): Promise<void>
   settleEvent(input: SettleEventInput): Promise<Event>
+  voidEvent(eventId: string): Promise<void>
 
   placeBet(input: PlaceBetInput): Promise<Bet>
   cancelBet(betId: string): Promise<void>
@@ -250,6 +251,18 @@ export class InMemoryRepository implements Repository {
     return settled
   }
 
+  async voidEvent(eventId: string): Promise<void> {
+    const event = this.events.find((e) => e.id === eventId)
+    if (!event) throw new Error(`Event ${eventId} not found`)
+    event.status = 'voided'
+    event.settled_at = now()
+    for (const outcome of event.outcomes) {
+      for (const bet of outcome.bets) {
+        bet.pnl = 0
+      }
+    }
+  }
+
   async placeBet(input: PlaceBetInput): Promise<Bet> {
     const bet: Bet = {
       id: uuid(),
@@ -418,6 +431,11 @@ class SupabaseRepository implements Repository {
     const settled = await this.getEvent(input.event_id)
     if (!settled) throw new Error('Event not found after settlement')
     return settled
+  }
+
+  async voidEvent(eventId: string): Promise<void> {
+    const { error } = await this.client.rpc('void_event', { p_event_id: eventId })
+    if (error) throw error
   }
 
   async placeBet(input: PlaceBetInput): Promise<Bet> {
