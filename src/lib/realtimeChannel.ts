@@ -22,9 +22,10 @@ export function broadcastUpdate() {
 }
 
 // Single global channel — set up once at module load
+// self: true so the sender also receives its own broadcasts (fixes admin not seeing own updates)
 if (import.meta.env.VITE_SUPABASE_URL) {
   supabase!
-    .channel('tobet-updates')
+    .channel('tobet-updates', { config: { broadcast: { self: true } } })
     .on('broadcast', { event: 'update' }, notifyAll)
     .subscribe()
 }
