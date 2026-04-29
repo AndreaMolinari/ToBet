@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/AndreaMolinari/ToBet/compare/v1.1.0...v1.2.0) (2026-04-29)
+
+
+### Features
+
+* leaderboard tab with full stats, tag-filtered profiles, stake on bettors ([fc71db1](https://github.com/AndreaMolinari/ToBet/commit/fc71db19d1489dd41b6d6ba8b1628a57d93e51c0))
+
 ## [1.1.0](https://github.com/AndreaMolinari/ToBet/compare/v1.0.3...v1.1.0) (2026-04-27)
 
 
