@@ -103,7 +103,7 @@ export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSe
             const userBet = currentUserId
               ? outcome.bets.find((b) => b.user_id === currentUserId)
               : undefined
-            const bettors = outcome.bets.map((b) => displayName(b.user_id))
+            const bettors = outcome.bets.map((b) => `${displayName(b.user_id)} (${b.stake}€)`)
             const isWinner = outcome.won === true
 
             const canBet = isOpen && !userBet

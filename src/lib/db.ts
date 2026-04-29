@@ -18,7 +18,7 @@ import type {
 // ---------------------------------------------------------------------------
 
 interface Repository {
-  getProfiles(): Promise<Profile[]>
+  getProfiles(userTags?: string[]): Promise<Profile[]>
   getProfile(id: string): Promise<Profile | null>
 
   getEvents(status?: EventStatus, includeHidden?: boolean, userTags?: string[]): Promise<Event[]>
@@ -162,8 +162,9 @@ export class InMemoryRepository implements Repository {
     },
   ]
 
-  async getProfiles(): Promise<Profile[]> {
-    return [...this.profiles]
+  async getProfiles(userTags?: string[]): Promise<Profile[]> {
+    if (!userTags) return [...this.profiles]
+    return this.profiles.filter(p => p.tags.some(t => userTags.includes(t)))
   }
 
   async getProfile(id: string): Promise<Profile | null> {
@@ -345,8 +346,10 @@ const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, tags
 class SupabaseRepository implements Repository {
   private get client() { return supabase! }
 
-  async getProfiles(): Promise<Profile[]> {
-    const { data, error } = await this.client.from('profiles').select('*')
+  async getProfiles(userTags?: string[]): Promise<Profile[]> {
+    let query = this.client.from('profiles').select('*')
+    if (userTags) query = query.overlaps('tags', userTags)
+    const { data, error } = await query
     if (error) throw error
     return data as Profile[]
   }

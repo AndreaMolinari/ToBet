@@ -22,12 +22,12 @@ export default function App() {
   const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, voidEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
   const { refresh: refreshSettled } = useEvents('settled', false, userTags)
   const { placeBet } = useBets()
-  const { profiles, updateRole, updateTags } = useLeaderboard()
+  const { profiles, updateRole, updateTags } = useLeaderboard(userTags)
   const { tags: allTags, createTag, deleteTag } = useTags()
   const [showEventForm, setShowEventForm] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
-  const [tab, setTab] = useState<'home' | 'archive' | 'mybets' | 'admin'>('home')
+  const [tab, setTab] = useState<'home' | 'archive' | 'mybets' | 'leaderboard' | 'admin'>('home')
 
   async function handleCreateEvent(input: CreateEventInput) {
     if (!user) return
@@ -242,6 +242,7 @@ export default function App() {
 
   const tabs = [
     { key: 'home' as const, label: 'Home' },
+    { key: 'leaderboard' as const, label: 'Classifica' },
     { key: 'archive' as const, label: 'Archivio' },
     { key: 'mybets' as const, label: 'Le mie' },
     ...(isAdmin ? [{ key: 'admin' as const, label: 'Admin' }] : []),
@@ -293,8 +294,6 @@ export default function App() {
       {/* Home tab */}
       {tab === 'home' && (
         <>
-          <Leaderboard profiles={profiles} currentUserId={user.id} />
-
           {openEvents.length > 0 ? (
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={sectionLabelStyle}>
@@ -340,6 +339,11 @@ export default function App() {
               </button>
             </div>
         </>
+      )}
+
+      {/* Leaderboard tab */}
+      {tab === 'leaderboard' && (
+        <Leaderboard profiles={profiles} currentUserId={user.id} />
       )}
 
       {/* Archive tab */}

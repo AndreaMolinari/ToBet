@@ -33,7 +33,6 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
       <button
         onClick={() => { setSelected(initialTags); setEditing(true) }}
         style={{
-          marginTop: 4,
           background: 'transparent',
           color: 'var(--color-text-tertiary)',
           border: '0.5px solid var(--color-border-tertiary)',
@@ -41,7 +40,6 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
           padding: '4px 10px',
           fontSize: 11,
           cursor: 'pointer',
-          textAlign: 'left',
         }}
       >
         {initialTags.length > 0 ? `Tag: ${initialTags.join(', ')}` : 'Aggiungi tag'}
@@ -50,7 +48,7 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
   }
 
   return (
-    <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {allTags.map(tag => (
           <button
@@ -105,8 +103,6 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
 }
 
 export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, onRoleChange, onTagsChange }: Props) {
-  const cols = Math.min(profiles.length, 3)
-
   return (
     <section style={{ marginBottom: '2rem' }}>
       <div style={{
@@ -117,76 +113,117 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
         color: 'var(--color-text-secondary)',
         marginBottom: 12,
       }}>
-        Leaderboard
+        Classifica
       </div>
-      <div className="leaderboard-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: 10,
-      }}>
-        {profiles.map((p) => {
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {profiles.map((p, i) => {
           const balanceColor = p.balance >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
           const balanceSign = p.balance >= 0 ? '+' : ''
           const isSelf = p.id === currentUserId
+          const total = p.wins + p.losses
+          const winRate = total > 0 ? Math.round((p.wins / total) * 100) : null
 
           return (
             <div key={p.id} style={{
-              background: 'var(--color-background-secondary)',
-              border: '0.5px solid var(--color-border-tertiary)',
+              background: isSelf ? 'rgba(245,184,0,0.05)' : 'var(--color-background-secondary)',
+              border: isSelf ? '0.5px solid rgba(245,184,0,0.25)' : '0.5px solid var(--color-border-tertiary)',
               borderRadius: 'var(--border-radius-lg)',
-              padding: '16px 18px',
+              padding: '14px 18px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 6,
+              gap: 10,
             }}>
-              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)' }}>
-                {p.display_name}
+              {/* Main row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                {/* Rank */}
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: i === 0 ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                  width: 20,
+                  flexShrink: 0,
+                }}>
+                  #{i + 1}
+                </div>
+
+                {/* Name */}
+                <div style={{ flex: 1, fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)' }}>
+                  {p.display_name}
+                  {isSelf && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--color-text-tertiary)', fontWeight: 400 }}>tu</span>}
+                  {p.role === 'admin' && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--color-accent)', fontWeight: 600 }}>admin</span>}
+                </div>
+
+                {/* Balance */}
+                <div style={{ fontSize: 20, fontWeight: 700, color: balanceColor, flexShrink: 0 }}>
+                  {balanceSign}{p.balance.toFixed(2)}€
+                </div>
               </div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: balanceColor }}>
-                {balanceSign}{p.balance.toFixed(2)}€
+
+              {/* Stats row */}
+              <div style={{ display: 'flex', gap: 20 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Vinte</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-success)' }}>{p.wins}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Perse</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-danger)' }}>{p.losses}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Totali</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{total}</div>
+                </div>
+                {winRate !== null && (
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Win rate</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{winRate}%</div>
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                {p.wins} vinte
-              </div>
-              {isAdmin && !isSelf && onRoleChange && (
-                p.role === 'player' ? (
-                  <button
-                    onClick={() => onRoleChange(p.id, 'admin')}
-                    style={{
-                      marginTop: 4,
-                      background: 'var(--color-accent)',
-                      color: '#000',
-                      border: 'none',
-                      borderRadius: 'var(--border-radius-full)',
-                      padding: '5px 10px',
-                      fontSize: 11,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Promuovi admin
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onRoleChange(p.id, 'player')}
-                    style={{
-                      marginTop: 4,
-                      background: 'transparent',
-                      color: 'var(--color-danger)',
-                      border: '0.5px solid var(--color-danger)',
-                      borderRadius: 'var(--border-radius-full)',
-                      padding: '5px 10px',
-                      fontSize: 10,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Rimuovi admin
-                  </button>
-                )
-              )}
-              {isAdmin && !isSelf && onTagsChange && (
-                <TagEditor userId={p.id} initialTags={p.tags} allTags={allTags} onSave={onTagsChange} />
+
+              {/* Admin controls */}
+              {isAdmin && !isSelf && (onRoleChange || onTagsChange) && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 4, borderTop: '0.5px solid var(--color-border-tertiary)' }}>
+                  {onRoleChange && (
+                    p.role === 'player' ? (
+                      <button
+                        onClick={() => onRoleChange(p.id, 'admin')}
+                        style={{
+                          background: 'var(--color-accent)',
+                          color: '#000',
+                          border: 'none',
+                          borderRadius: 'var(--border-radius-full)',
+                          padding: '5px 10px',
+                          fontSize: 11,
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Promuovi admin
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onRoleChange(p.id, 'player')}
+                        style={{
+                          background: 'transparent',
+                          color: 'var(--color-danger)',
+                          border: '0.5px solid var(--color-danger)',
+                          borderRadius: 'var(--border-radius-full)',
+                          padding: '5px 10px',
+                          fontSize: 11,
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Rimuovi admin
+                      </button>
+                    )
+                  )}
+                  {onTagsChange && (
+                    <TagEditor userId={p.id} initialTags={p.tags} allTags={allTags} onSave={onTagsChange} />
+                  )}
+                </div>
               )}
             </div>
           )
