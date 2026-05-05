@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/AndreaMolinari/ToBet/compare/v1.2.0...v1.3.0) (2026-05-05)
+
+
+### Features
+
+* add fixed odds event mode ([10c75f6](https://github.com/AndreaMolinari/ToBet/commit/10c75f632e8c022a0952d18bd18bd55b1dd863b7))
+
 ## [1.2.0](https://github.com/AndreaMolinari/ToBet/compare/v1.1.0...v1.2.0) (2026-04-29)
 
 
