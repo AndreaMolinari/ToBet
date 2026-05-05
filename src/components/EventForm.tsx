@@ -8,6 +8,7 @@ interface OutcomeDraft {
 
 interface Props {
   availableTags: Tag[]
+  initialMode?: EventMode
   onSubmit: (input: CreateEventInput) => void
   onClose: () => void
 }
@@ -32,10 +33,10 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
 }
 
-export function EventForm({ availableTags, onSubmit, onClose }: Props) {
+export function EventForm({ availableTags, initialMode, onSubmit, onClose }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [mode, setMode] = useState<EventMode>('single')
+  const [mode, setMode] = useState<EventMode>(initialMode ?? 'single')
   const [fixedOdds, setFixedOdds] = useState('2.00')
   const [selectedTag, setSelectedTag] = useState('public')
   const [outcomes, setOutcomes] = useState<OutcomeDraft[]>([

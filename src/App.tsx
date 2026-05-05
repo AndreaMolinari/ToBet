@@ -13,7 +13,7 @@ import { MyBets } from './components/MyBets'
 import { AcceptanceScreen } from './components/AcceptanceScreen'
 import { TagManager } from './components/TagManager'
 import { toast } from './lib/toast'
-import type { CreateEventInput, SettleEventInput, PlaceBetInput, Tag, UserRole } from './lib/types'
+import type { CreateEventInput, SettleEventInput, PlaceBetInput, Tag, UserRole, EventMode } from './lib/types'
 import { sectionLabelStyle } from './lib/styles'
 
 export default function App() {
@@ -24,7 +24,7 @@ export default function App() {
   const { placeBet } = useBets()
   const { profiles, updateRole, updateTags } = useLeaderboard(userTags)
   const { tags: allTags, createTag, deleteTag } = useTags()
-  const [showEventForm, setShowEventForm] = useState(false)
+  const [eventFormMode, setEventFormMode] = useState<EventMode | null>(null)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [tab, setTab] = useState<'home' | 'archive' | 'mybets' | 'leaderboard' | 'admin'>('home')
@@ -33,7 +33,7 @@ export default function App() {
     if (!user) return
     try {
       await createEvent(input, user.id)
-      setShowEventForm(false)
+      setEventFormMode(null)
       toast.success('Scommessa creata!')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nella creazione')
@@ -294,6 +294,38 @@ export default function App() {
       {/* Home tab */}
       {tab === 'home' && (
         <>
+          <div style={{ display: 'flex', gap: 8, marginBottom: '1.5rem' }}>
+            {([
+              { mode: 'single' as EventMode, icon: '⚡', label: 'Singolo', sub: 'Un vincitore' },
+              { mode: 'multi'  as EventMode, icon: '🎯', label: 'Multi',   sub: 'Più vincitori' },
+              { mode: 'fixed'  as EventMode, icon: '💰', label: 'Fissa',   sub: 'Quota uguale' },
+            ]).map(({ mode, icon, label, sub }) => (
+              <button
+                key={mode}
+                onClick={() => setEventFormMode(mode)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '12px 6px',
+                  borderRadius: 'var(--border-radius-lg)',
+                  background: 'var(--color-background-secondary)',
+                  border: '0.5px solid var(--color-accent)',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'color-mix(in srgb, var(--color-accent) 15%, transparent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-background-secondary)')}
+              >
+                <span style={{ fontSize: 22 }}>{icon}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>{label}</span>
+                <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>{sub}</span>
+              </button>
+            ))}
+          </div>
+
           {openEvents.length > 0 ? (
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={sectionLabelStyle}>
@@ -319,25 +351,6 @@ export default function App() {
               Nessuna scommessa aperta
             </p>
           )}
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-              <button
-                onClick={() => setShowEventForm(true)}
-                style={{
-                  background: 'var(--color-accent)',
-                  color: '#000',
-                  border: 'none',
-                  padding: '12px 32px',
-                  borderRadius: 30,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  letterSpacing: '0.5px',
-                }}
-              >
-                + Nuova scommessa
-              </button>
-            </div>
         </>
       )}
 
@@ -369,11 +382,12 @@ export default function App() {
         </>
       )}
 
-      {showEventForm && (
+      {eventFormMode !== null && (
         <EventForm
           availableTags={availableTags}
+          initialMode={eventFormMode}
           onSubmit={handleCreateEvent}
-          onClose={() => setShowEventForm(false)}
+          onClose={() => setEventFormMode(null)}
         />
       )}
     </div>
