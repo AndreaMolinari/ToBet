@@ -11,6 +11,15 @@ interface Props {
   onDisplayNameChange?: (userId: string, displayName: string) => void
 }
 
+const controlBtnStyle: React.CSSProperties = {
+  background: 'transparent',
+  borderRadius: 'var(--border-radius-full)',
+  padding: '4px 10px',
+  fontSize: 11,
+  fontWeight: 500,
+  cursor: 'pointer',
+}
+
 function NameEditor({ userId, initialName, onSave }: {
   userId: string
   initialName: string
@@ -30,15 +39,7 @@ function NameEditor({ userId, initialName, onSave }: {
     return (
       <button
         onClick={() => { setValue(initialName); setEditing(true) }}
-        style={{
-          background: 'transparent',
-          color: 'var(--color-text-tertiary)',
-          border: '0.5px solid var(--color-border-tertiary)',
-          borderRadius: 'var(--border-radius-full)',
-          padding: '4px 10px',
-          fontSize: 11,
-          cursor: 'pointer',
-        }}
+        style={{ ...controlBtnStyle, color: 'var(--color-text-tertiary)', border: '0.5px solid var(--color-border-tertiary)' }}
       >
         Rinomina
       </button>
@@ -65,29 +66,11 @@ function NameEditor({ userId, initialName, onSave }: {
       />
       <button
         onClick={handleSave}
-        style={{
-          background: 'var(--color-accent)',
-          color: '#000',
-          border: 'none',
-          borderRadius: 'var(--border-radius-full)',
-          padding: '4px 12px',
-          fontSize: 11,
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
+        style={{ ...controlBtnStyle, background: 'var(--color-accent)', color: '#000', border: 'none', fontWeight: 600 }}
       >
         Salva
       </button>
-      <button
-        onClick={() => setEditing(false)}
-        style={{
-          background: 'transparent',
-          color: 'var(--color-text-tertiary)',
-          border: 'none',
-          fontSize: 11,
-          cursor: 'pointer',
-        }}
-      >
+      <button onClick={() => setEditing(false)} style={{ ...controlBtnStyle, border: 'none', color: 'var(--color-text-tertiary)' }}>
         Annulla
       </button>
     </div>
@@ -114,34 +97,50 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
 
   if (!editing) {
     return (
-      <button
-        onClick={() => { setSelected(initialTags); setEditing(true) }}
-        style={{
-          background: 'transparent',
-          color: 'var(--color-text-tertiary)',
-          border: '0.5px solid var(--color-border-tertiary)',
-          borderRadius: 'var(--border-radius-full)',
-          padding: '4px 10px',
-          fontSize: 11,
-          cursor: 'pointer',
-        }}
-      >
-        {initialTags.length > 0 ? `Tag: ${initialTags.join(', ')}` : 'Aggiungi tag'}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+        {initialTags.length > 0
+          ? initialTags.map(t => {
+              const label = allTags.find(a => a.name === t)?.label ?? t
+              return (
+                <span key={t} style={{
+                  padding: '2px 8px',
+                  borderRadius: 'var(--border-radius-full)',
+                  fontSize: 11,
+                  fontWeight: 500,
+                  background: 'color-mix(in srgb, var(--color-accent) 18%, transparent)',
+                  color: 'var(--color-accent)',
+                }}>
+                  {label}
+                </span>
+              )
+            })
+          : <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>—</span>
+        }
+        <button
+          onClick={() => { setSelected(initialTags); setEditing(true) }}
+          style={{ ...controlBtnStyle, border: 'none', color: 'var(--color-text-tertiary)', padding: '2px 6px', fontSize: 13 }}
+          title="Modifica tag"
+        >
+          ✏️
+        </button>
+      </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+      <div style={{ fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>
+        Modifica tag
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {allTags.map(tag => (
           <button
             key={tag.name}
             onClick={() => toggle(tag.name)}
             style={{
-              padding: '4px 10px',
+              padding: '6px 14px',
               borderRadius: 'var(--border-radius-full)',
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 500,
               background: selected.includes(tag.name) ? 'var(--color-accent)' : 'var(--color-background-primary)',
               color: selected.includes(tag.name) ? '#000' : 'var(--color-text-secondary)',
@@ -153,32 +152,14 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
           </button>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
         <button
           onClick={handleSave}
-          style={{
-            background: 'var(--color-accent)',
-            color: '#000',
-            border: 'none',
-            borderRadius: 'var(--border-radius-full)',
-            padding: '4px 12px',
-            fontSize: 11,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
+          style={{ ...controlBtnStyle, background: 'var(--color-accent)', color: '#000', border: 'none', fontWeight: 600 }}
         >
           Salva
         </button>
-        <button
-          onClick={() => setEditing(false)}
-          style={{
-            background: 'transparent',
-            color: 'var(--color-text-tertiary)',
-            border: 'none',
-            fontSize: 11,
-            cursor: 'pointer',
-          }}
-        >
+        <button onClick={() => setEditing(false)} style={{ ...controlBtnStyle, border: 'none', color: 'var(--color-text-tertiary)' }}>
           Annulla
         </button>
       </div>
@@ -187,6 +168,28 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
 }
 
 export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, onRoleChange, onTagsChange, onDisplayNameChange }: Props) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'player'>('all')
+  const [tagFilter, setTagFilter] = useState('all')
+
+  const visible = profiles.filter(p => {
+    if (searchQuery && !p.display_name.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    if (roleFilter !== 'all' && p.role !== roleFilter) return false
+    if (tagFilter !== 'all' && !p.tags.includes(tagFilter)) return false
+    return true
+  })
+
+  const chipStyle = (active: boolean): React.CSSProperties => ({
+    padding: '4px 12px',
+    borderRadius: 'var(--border-radius-full)',
+    fontSize: 11,
+    fontWeight: 500,
+    cursor: 'pointer',
+    border: `0.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border-tertiary)'}`,
+    background: active ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)' : 'transparent',
+    color: active ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+  })
+
   return (
     <section style={{ marginBottom: '2rem' }}>
       <div style={{
@@ -200,8 +203,51 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
         Classifica
       </div>
 
+      {isAdmin && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cerca per nome..."
+            style={{
+              width: '100%',
+              background: 'var(--color-background-primary)',
+              border: '0.5px solid var(--color-border-tertiary)',
+              borderRadius: 'var(--border-radius-md)',
+              padding: '9px 12px',
+              color: 'var(--color-text-primary)',
+              fontSize: 13,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {(['all', 'admin', 'player'] as const).map(r => (
+              <button key={r} onClick={() => setRoleFilter(r)} style={chipStyle(roleFilter === r)}>
+                {r === 'all' ? 'Tutti' : r === 'admin' ? 'Admin' : 'Player'}
+              </button>
+            ))}
+          </div>
+          {allTags.length > 0 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button onClick={() => setTagFilter('all')} style={chipStyle(tagFilter === 'all')}>Tutti</button>
+              {allTags.map(t => (
+                <button key={t.name} onClick={() => setTagFilter(t.name)} style={chipStyle(tagFilter === t.name)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
+            {visible.length === profiles.length
+              ? `${profiles.length} utenti`
+              : `${visible.length} di ${profiles.length}`}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {profiles.map((p, i) => {
+        {visible.map((p, i) => {
           const balanceColor = p.balance >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
           const balanceSign = p.balance >= 0 ? '+' : ''
           const isSelf = p.id === currentUserId
@@ -213,14 +259,13 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
               background: isSelf ? 'rgba(245,184,0,0.05)' : 'var(--color-background-secondary)',
               border: isSelf ? '0.5px solid rgba(245,184,0,0.25)' : '0.5px solid var(--color-border-tertiary)',
               borderRadius: 'var(--border-radius-lg)',
-              padding: '14px 18px',
+              padding: '10px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 10,
+              gap: 7,
             }}>
               {/* Main row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                {/* Rank */}
                 <div style={{
                   fontSize: 13,
                   fontWeight: 700,
@@ -230,15 +275,11 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
                 }}>
                   #{i + 1}
                 </div>
-
-                {/* Name */}
                 <div style={{ flex: 1, fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)' }}>
                   {p.display_name}
                   {isSelf && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--color-text-tertiary)', fontWeight: 400 }}>tu</span>}
                   {p.role === 'admin' && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--color-accent)', fontWeight: 600 }}>admin</span>}
                 </div>
-
-                {/* Balance */}
                 <div style={{ fontSize: 20, fontWeight: 700, color: balanceColor, flexShrink: 0 }}>
                   {balanceSign}{p.balance.toFixed(2)}€
                 </div>
@@ -247,20 +288,20 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
               {/* Stats row */}
               <div style={{ display: 'flex', gap: 20 }}>
                 <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Vinte</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 1 }}>Vinte</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-success)' }}>{p.wins}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Perse</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 1 }}>Perse</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-danger)' }}>{p.losses}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Totali</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 1 }}>Totali</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{total}</div>
                 </div>
                 {winRate !== null && (
                   <div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>Win rate</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 1 }}>Win rate</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{winRate}%</div>
                   </div>
                 )}
@@ -268,7 +309,7 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
 
               {/* Admin controls */}
               {isAdmin && !isSelf && (onRoleChange || onTagsChange || onDisplayNameChange) && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 4, borderTop: '0.5px solid var(--color-border-tertiary)' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, paddingTop: 4, borderTop: '0.5px solid var(--color-border-tertiary)' }}>
                   {onDisplayNameChange && (
                     <NameEditor userId={p.id} initialName={p.display_name} onSave={onDisplayNameChange} />
                   )}
@@ -276,32 +317,14 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
                     p.role === 'player' ? (
                       <button
                         onClick={() => onRoleChange(p.id, 'admin')}
-                        style={{
-                          background: 'var(--color-accent)',
-                          color: '#000',
-                          border: 'none',
-                          borderRadius: 'var(--border-radius-full)',
-                          padding: '5px 10px',
-                          fontSize: 11,
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                        }}
+                        style={{ ...controlBtnStyle, color: 'var(--color-accent)', border: '0.5px solid var(--color-accent)' }}
                       >
                         Promuovi admin
                       </button>
                     ) : (
                       <button
                         onClick={() => onRoleChange(p.id, 'player')}
-                        style={{
-                          background: 'transparent',
-                          color: 'var(--color-danger)',
-                          border: '0.5px solid var(--color-danger)',
-                          borderRadius: 'var(--border-radius-full)',
-                          padding: '5px 10px',
-                          fontSize: 11,
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                        }}
+                        style={{ ...controlBtnStyle, color: 'var(--color-danger)', border: '0.5px solid var(--color-danger)' }}
                       >
                         Rimuovi admin
                       </button>
@@ -315,6 +338,12 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
             </div>
           )
         })}
+
+        {visible.length === 0 && (
+          <p style={{ color: 'var(--color-text-tertiary)', fontSize: 13, textAlign: 'center', marginTop: '1rem' }}>
+            Nessun utente trovato
+          </p>
+        )}
       </div>
     </section>
   )
