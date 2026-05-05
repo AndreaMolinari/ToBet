@@ -22,7 +22,7 @@ export default function App() {
   const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, voidEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
   const { refresh: refreshSettled } = useEvents('settled', false, userTags)
   const { placeBet } = useBets()
-  const { profiles, updateRole, updateTags } = useLeaderboard(userTags)
+  const { profiles, updateRole, updateTags, updateDisplayName } = useLeaderboard(userTags)
   const { tags: allTags, createTag, deleteTag } = useTags()
   const [eventFormMode, setEventFormMode] = useState<EventMode | null>(null)
   const [email, setEmail] = useState('')
@@ -110,6 +110,15 @@ export default function App() {
       toast.success('Tag aggiornati')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nel salvataggio tag')
+    }
+  }
+
+  async function handleDisplayNameChange(userId: string, displayName: string) {
+    try {
+      await updateDisplayName(userId, displayName)
+      toast.success('Nome aggiornato')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nel salvataggio nome')
     }
   }
 
@@ -377,6 +386,7 @@ export default function App() {
             isAdmin={true}
             onRoleChange={handleRoleChange}
             onTagsChange={handleTagsChange}
+            onDisplayNameChange={handleDisplayNameChange}
           />
           <TagManager tags={allTags} onCreate={handleCreateTag} onDelete={handleDeleteTag} />
         </>

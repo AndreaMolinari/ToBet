@@ -8,6 +8,90 @@ interface Props {
   isAdmin?: boolean
   onRoleChange?: (userId: string, role: UserRole) => void
   onTagsChange?: (userId: string, tags: string[]) => void
+  onDisplayNameChange?: (userId: string, displayName: string) => void
+}
+
+function NameEditor({ userId, initialName, onSave }: {
+  userId: string
+  initialName: string
+  onSave: (userId: string, name: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(initialName)
+
+  function handleSave() {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    onSave(userId, trimmed)
+    setEditing(false)
+  }
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { setValue(initialName); setEditing(true) }}
+        style={{
+          background: 'transparent',
+          color: 'var(--color-text-tertiary)',
+          border: '0.5px solid var(--color-border-tertiary)',
+          borderRadius: 'var(--border-radius-full)',
+          padding: '4px 10px',
+          fontSize: 11,
+          cursor: 'pointer',
+        }}
+      >
+        Rinomina
+      </button>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <input
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false) }}
+        style={{
+          background: 'var(--color-background-primary)',
+          border: '0.5px solid var(--color-accent)',
+          borderRadius: 'var(--border-radius-md)',
+          padding: '4px 8px',
+          color: 'var(--color-text-primary)',
+          fontSize: 13,
+          outline: 'none',
+          width: 140,
+        }}
+      />
+      <button
+        onClick={handleSave}
+        style={{
+          background: 'var(--color-accent)',
+          color: '#000',
+          border: 'none',
+          borderRadius: 'var(--border-radius-full)',
+          padding: '4px 12px',
+          fontSize: 11,
+          fontWeight: 600,
+          cursor: 'pointer',
+        }}
+      >
+        Salva
+      </button>
+      <button
+        onClick={() => setEditing(false)}
+        style={{
+          background: 'transparent',
+          color: 'var(--color-text-tertiary)',
+          border: 'none',
+          fontSize: 11,
+          cursor: 'pointer',
+        }}
+      >
+        Annulla
+      </button>
+    </div>
+  )
 }
 
 function TagEditor({ userId, initialTags, allTags, onSave }: {
@@ -102,7 +186,7 @@ function TagEditor({ userId, initialTags, allTags, onSave }: {
   )
 }
 
-export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, onRoleChange, onTagsChange }: Props) {
+export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, onRoleChange, onTagsChange, onDisplayNameChange }: Props) {
   return (
     <section style={{ marginBottom: '2rem' }}>
       <div style={{
@@ -183,8 +267,11 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
               </div>
 
               {/* Admin controls */}
-              {isAdmin && !isSelf && (onRoleChange || onTagsChange) && (
+              {isAdmin && !isSelf && (onRoleChange || onTagsChange || onDisplayNameChange) && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 4, borderTop: '0.5px solid var(--color-border-tertiary)' }}>
+                  {onDisplayNameChange && (
+                    <NameEditor userId={p.id} initialName={p.display_name} onSave={onDisplayNameChange} />
+                  )}
                   {onRoleChange && (
                     p.role === 'player' ? (
                       <button

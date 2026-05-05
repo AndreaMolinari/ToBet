@@ -9,6 +9,7 @@ interface LeaderboardState {
   error: string | null
   updateRole: (userId: string, role: UserRole) => Promise<void>
   updateTags: (userId: string, tags: string[]) => Promise<void>
+  updateDisplayName: (userId: string, displayName: string) => Promise<void>
 }
 
 export function useLeaderboard(userTags?: string[]): LeaderboardState {
@@ -42,5 +43,10 @@ export function useLeaderboard(userTags?: string[]): LeaderboardState {
     await fetchProfiles()
   }, [fetchProfiles])
 
-  return { profiles, loading, error, updateRole, updateTags }
+  const updateDisplayName = useCallback(async (userId: string, displayName: string) => {
+    await db.updateProfileDisplayName(userId, displayName)
+    await fetchProfiles()
+  }, [fetchProfiles])
+
+  return { profiles, loading, error, updateRole, updateTags, updateDisplayName }
 }

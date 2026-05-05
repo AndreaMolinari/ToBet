@@ -34,6 +34,7 @@ interface Repository {
   cancelBet(betId: string): Promise<void>
   updateProfileRole(userId: string, role: UserRole): Promise<void>
   updateProfileTags(userId: string, tags: string[]): Promise<void>
+  updateProfileDisplayName(userId: string, displayName: string): Promise<void>
   acceptTerms(userId: string): Promise<void>
 
   getTags(): Promise<Tag[]>
@@ -313,6 +314,12 @@ export class InMemoryRepository implements Repository {
     profile.tags = tags
   }
 
+  async updateProfileDisplayName(userId: string, displayName: string): Promise<void> {
+    const profile = this.profiles.find((p) => p.id === userId)
+    if (!profile) throw new Error(`Profile ${userId} not found`)
+    profile.display_name = displayName
+  }
+
   async acceptTerms(userId: string): Promise<void> {
     const profile = this.profiles.find((p) => p.id === userId)
     if (!profile) throw new Error(`Profile ${userId} not found`)
@@ -464,6 +471,11 @@ class SupabaseRepository implements Repository {
 
   async updateProfileTags(userId: string, tags: string[]): Promise<void> {
     const { error } = await this.client.from('profiles').update({ tags }).eq('id', userId)
+    if (error) throw error
+  }
+
+  async updateProfileDisplayName(userId: string, displayName: string): Promise<void> {
+    const { error } = await this.client.from('profiles').update({ display_name: displayName }).eq('id', userId)
     if (error) throw error
   }
 
