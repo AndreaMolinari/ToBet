@@ -36,6 +36,7 @@ export function EventForm({ availableTags, onSubmit, onClose }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [mode, setMode] = useState<EventMode>('single')
+  const [fixedOdds, setFixedOdds] = useState('2.00')
   const [selectedTag, setSelectedTag] = useState('public')
   const [outcomes, setOutcomes] = useState<OutcomeDraft[]>([
     { label: '', odds: '2.00' },
@@ -57,19 +58,22 @@ export function EventForm({ availableTags, onSubmit, onClose }: Props) {
 
   function handleSubmit() {
     if (!title.trim()) return
+
+    if (mode === 'fixed') {
+      const fo = parseFloat(fixedOdds)
+      if (isNaN(fo) || fo < 1.01) return
+      const parsedOutcomes = outcomes.map((o) => ({ label: o.label.trim(), odds: fo }))
+      if (parsedOutcomes.some((o) => !o.label)) return
+      onSubmit({ title: title.trim(), description: description.trim() || undefined, mode, tags: [selectedTag], fixed_odds: fo, outcomes: parsedOutcomes })
+      return
+    }
+
     const parsedOutcomes = outcomes.map((o) => ({
       label: o.label.trim(),
       odds: parseFloat(o.odds),
     }))
     if (parsedOutcomes.some((o) => !o.label || isNaN(o.odds) || o.odds < 1.01)) return
-
-    onSubmit({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      mode,
-      tags: [selectedTag],
-      outcomes: parsedOutcomes,
-    })
+    onSubmit({ title: title.trim(), description: description.trim() || undefined, mode, tags: [selectedTag], outcomes: parsedOutcomes })
   }
 
   return (
@@ -128,7 +132,7 @@ export function EventForm({ availableTags, onSubmit, onClose }: Props) {
         <div>
           <label style={labelStyle}>Modalità</label>
           <div style={{ display: 'flex', gap: 8 }}>
-            {(['single', 'multi'] as EventMode[]).map((m) => (
+            {([['single', 'Singolo'], ['multi', 'Multi'], ['fixed', 'Quota Fissa']] as [EventMode, string][]).map(([m, label]) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
@@ -143,10 +147,23 @@ export function EventForm({ availableTags, onSubmit, onClose }: Props) {
                   border: `0.5px solid ${mode === m ? 'transparent' : 'var(--color-border-tertiary)'}`,
                 }}
               >
-                {m === 'single' ? 'Singolo' : 'Multi'}
+                {label}
               </button>
             ))}
           </div>
+          {mode === 'fixed' && (
+            <div style={{ marginTop: 8 }}>
+              <label style={labelStyle}>Quota unica</label>
+              <input
+                style={{ ...inputStyle, width: 100, textAlign: 'center' }}
+                type="number"
+                min="1.01"
+                step="0.05"
+                value={fixedOdds}
+                onChange={(e) => setFixedOdds(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
         {availableTags.length > 1 && (
@@ -186,15 +203,17 @@ export function EventForm({ availableTags, onSubmit, onClose }: Props) {
                   value={o.label}
                   onChange={(e) => updateOutcome(i, 'label', e.target.value)}
                 />
-                <input
-                  style={{ ...inputStyle, width: 80, textAlign: 'center' }}
-                  type="number"
-                  min="1.01"
-                  step="0.01"
-                  placeholder="Quota"
-                  value={o.odds}
-                  onChange={(e) => updateOutcome(i, 'odds', e.target.value)}
-                />
+                {mode !== 'fixed' && (
+                  <input
+                    style={{ ...inputStyle, width: 80, textAlign: 'center' }}
+                    type="number"
+                    min="1.01"
+                    step="0.01"
+                    placeholder="Quota"
+                    value={o.odds}
+                    onChange={(e) => updateOutcome(i, 'odds', e.target.value)}
+                  />
+                )}
                 {outcomes.length > 1 && (
                   <button
                     onClick={() => removeOutcome(i)}

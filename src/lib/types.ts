@@ -1,5 +1,5 @@
 export type EventStatus = 'open' | 'settled' | 'voided'
-export type EventMode = 'single' | 'multi'
+export type EventMode = 'single' | 'multi' | 'fixed'
 
 export type UserRole = 'admin' | 'player'
 
@@ -47,6 +47,7 @@ export interface Event {
   settled_at?: string
   hidden: boolean
   tags: string[]
+  fixed_odds?: number
   outcomes: Outcome[]
 }
 
@@ -55,6 +56,7 @@ export interface CreateEventInput {
   description?: string
   mode: EventMode
   tags: string[]
+  fixed_odds?: number
   outcomes: { label: string; odds: number }[]
 }
 

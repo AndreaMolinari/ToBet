@@ -339,14 +339,20 @@ export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSe
                 <div style={{ display: 'flex', gap: 8 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
                     <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>Quota</span>
-                    <input
-                      type="number"
-                      min={1.01}
-                      step={0.05}
-                      value={newOdds}
-                      onChange={(e) => setNewOdds(parseFloat(e.target.value) || 2)}
-                      style={{ ...inputStyle, width: '100%' }}
-                    />
+                    {event.mode === 'fixed' ? (
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-accent)', padding: '4px 8px' }}>
+                        {(event.fixed_odds ?? 2).toFixed(2)}x
+                      </span>
+                    ) : (
+                      <input
+                        type="number"
+                        min={1.01}
+                        step={0.05}
+                        value={newOdds}
+                        onChange={(e) => setNewOdds(parseFloat(e.target.value) || 2)}
+                        style={{ ...inputStyle, width: '100%' }}
+                      />
+                    )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
                     <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>Stake (€)</span>
@@ -364,7 +370,7 @@ export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSe
                   <button
                     onClick={() => {
                       if (!newLabel.trim()) return
-                      onAddOutcome(newLabel.trim(), newOdds, newStake)
+                      onAddOutcome(newLabel.trim(), event.mode === 'fixed' ? (event.fixed_odds ?? 2) : newOdds, newStake)
                       setShowAddOutcome(false)
                       setNewLabel('')
                       setNewOdds(2)

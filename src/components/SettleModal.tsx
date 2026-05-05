@@ -11,7 +11,7 @@ export function SettleModal({ event, onConfirm, onClose }: Props) {
   const [selected, setSelected] = useState<string[]>([])
 
   function toggleOutcome(id: string) {
-    if (event.mode === 'single') {
+    if (event.mode === 'single' || event.mode === 'fixed') {
       setSelected([id])
     } else {
       setSelected((prev) =>
@@ -51,9 +51,9 @@ export function SettleModal({ event, onConfirm, onClose }: Props) {
           Chiudi scommessa
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-          {event.mode === 'single'
-            ? 'Seleziona l\'outcome vincente'
-            : 'Seleziona gli outcome vincenti'}
+          {event.mode === 'multi'
+            ? 'Seleziona gli outcome vincenti'
+            : 'Seleziona l\'outcome vincente'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {event.outcomes.map((o) => {
@@ -75,7 +75,7 @@ export function SettleModal({ event, onConfirm, onClose }: Props) {
                 }}
               >
                 <input
-                  type={event.mode === 'single' ? 'radio' : 'checkbox'}
+                  type={event.mode === 'multi' ? 'checkbox' : 'radio'}
                   name="outcome"
                   value={o.id}
                   checked={checked}

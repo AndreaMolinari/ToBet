@@ -101,6 +101,10 @@ Migrations live in `supabase/migrations/`:
 
 Migrations are applied via Supabase MCP (configured in `.mcp.json`) or manually via SQL Editor. `.mcp.json` is gitignored (contains auth token).
 
+**Workflow attuale**: applicare sempre la migration via MCP (`apply_migration`) **prima** di fare deploy del frontend quando una feature cambia lo schema DB. Il deploy GitHub non tocca il DB.
+
+**TODO**: automatizzare le migration via CI. Prerequisiti: rinominare tutti i file in formato `YYYYMMDDHHMMSS_name.sql` (oggi usano numeri sequenziali, il DB traccia timestamp), risolvere il gap della 004, aggiungere `supabase db push` alla GitHub Action con i secret necessari.
+
 **Nota: migration 004 mancante.** La migrazione che introduceva `user_role` enum, colonna `profiles.role` e le policy admin-only su events/outcomes fu applicata manualmente via SQL Editor senza passare dal sistema Supabase. Il contenuto è nel DB ma non è tracciato in `supabase_migrations.schema_migrations`, quindi la sequenza salta da `003` a `005`. Il file locale `004_roles.sql` è stato rimosso perché non rieseguibile (i tipi e le colonne esistono già).
 
 Per chiudere il gap nella tracciabilità senza rieseguire nulla:

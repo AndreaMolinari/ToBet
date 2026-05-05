@@ -195,6 +195,7 @@ export class InMemoryRepository implements Repository {
       status: 'open',
       hidden: false,
       tags: input.tags,
+      fixed_odds: input.fixed_odds,
       created_by: createdBy,
       created_at: now(),
       outcomes: input.outcomes.map((o) => ({
@@ -341,7 +342,7 @@ export class InMemoryRepository implements Repository {
 // ---------------------------------------------------------------------------
 
 const OUTCOMES_WITH_BETS = 'id, event_id, label, odds, won, created_at, bets(*)'
-const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, tags, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
+const EVENTS_WITH_OUTCOMES = `id, title, description, mode, status, hidden, tags, fixed_odds, created_by, created_at, settled_at, outcomes(${OUTCOMES_WITH_BETS})`
 
 class SupabaseRepository implements Repository {
   private get client() { return supabase! }
@@ -384,7 +385,7 @@ class SupabaseRepository implements Repository {
   async createEvent(input: CreateEventInput, createdBy: string): Promise<Event> {
     const { data: event, error: eventError } = await this.client
       .from('events')
-      .insert({ title: input.title, description: input.description, mode: input.mode, tags: input.tags, created_by: createdBy })
+      .insert({ title: input.title, description: input.description, mode: input.mode, tags: input.tags, fixed_odds: input.fixed_odds ?? null, created_by: createdBy })
       .select('id')
       .single()
     if (eventError) throw eventError
