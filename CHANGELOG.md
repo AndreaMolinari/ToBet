@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/AndreaMolinari/ToBet/compare/v1.3.0...v1.4.0) (2026-05-05)
+
+
+### Features
+
+* replace single create button with 3 mode-specific cards ([81b6bae](https://github.com/AndreaMolinari/ToBet/commit/81b6baee70bb8cbc530a53acfc93ded3e6354877))
+
 ## [1.3.0](https://github.com/AndreaMolinari/ToBet/compare/v1.2.0...v1.3.0) (2026-05-05)
 
 
