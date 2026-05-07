@@ -38,7 +38,7 @@ export function EventForm({ availableTags, initialMode, onSubmit, onClose }: Pro
   const [description, setDescription] = useState('')
   const [mode, setMode] = useState<EventMode>(initialMode ?? 'single')
   const [fixedOdds, setFixedOdds] = useState('2.00')
-  const [selectedTag, setSelectedTag] = useState('public')
+  const [selectedTag, setSelectedTag] = useState(() => availableTags[0]?.name ?? 'public')
   const [outcomes, setOutcomes] = useState<OutcomeDraft[]>([
     { label: '', odds: '2.00' },
     { label: '', odds: '2.00' },
