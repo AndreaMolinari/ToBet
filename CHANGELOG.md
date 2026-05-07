@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0](https://github.com/AndreaMolinari/ToBet/compare/v1.4.0...v1.5.0) (2026-05-07)
+
+
+### Features
+
+* add avatar support — Gravatar in header, profile pic in leaderboard ([71f5780](https://github.com/AndreaMolinari/ToBet/commit/71f578090cf4be4d67dc2777e16b1b1f6e8182c5))
+* allow admin to rename any user's display name ([1ef58ab](https://github.com/AndreaMolinari/ToBet/commit/1ef58abbc326939d773da72966687f9042c134e6))
+* improve admin user list with search, filters and tighter UI ([9e95c91](https://github.com/AndreaMolinari/ToBet/commit/9e95c914fc4c5ddb93857585ba097b16fd388251))
+
 ## [1.4.0](https://github.com/AndreaMolinari/ToBet/compare/v1.3.0...v1.4.0) (2026-05-05)
 
 
