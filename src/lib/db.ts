@@ -32,6 +32,9 @@ interface Repository {
 
   placeBet(input: PlaceBetInput): Promise<Bet>
   cancelBet(betId: string): Promise<void>
+  closeBet(betId: string): Promise<void>
+  payBet(betId: string, won: boolean): Promise<void>
+  voidBet(betId: string): Promise<void>
   updateProfileRole(userId: string, role: UserRole): Promise<void>
   updateProfileTags(userId: string, tags: string[]): Promise<void>
   updateProfileDisplayName(userId: string, displayName: string): Promise<void>
@@ -89,6 +92,7 @@ export class InMemoryRepository implements Repository {
               outcome_id: 'outcome-1a',
               user_id: 'user-2',
               stake: 10,
+              status: 'open' as const,
               created_at: now(),
             },
           ],
@@ -105,6 +109,7 @@ export class InMemoryRepository implements Repository {
               outcome_id: 'outcome-1b',
               user_id: 'user-3',
               stake: 5,
+              status: 'open' as const,
               created_at: now(),
             },
           ],
@@ -137,6 +142,7 @@ export class InMemoryRepository implements Repository {
               user_id: 'user-1',
               stake: 20,
               pnl: 20 * 1.5,
+              status: 'paid' as const,
               created_at: now(),
             },
           ],
@@ -155,6 +161,7 @@ export class InMemoryRepository implements Repository {
               user_id: 'user-2',
               stake: 15,
               pnl: -15,
+              status: 'paid' as const,
               created_at: now(),
             },
           ],
@@ -272,6 +279,7 @@ export class InMemoryRepository implements Repository {
       outcome_id: input.outcome_id,
       user_id: input.user_id,
       stake: input.stake,
+      status: 'open',
       created_at: now(),
     }
 
@@ -299,6 +307,43 @@ export class InMemoryRepository implements Repository {
         }
       }
     }
+    throw new Error(`Bet ${betId} not found`)
+  }
+
+  async closeBet(betId: string): Promise<void> {
+    for (const event of this.events)
+      for (const outcome of event.outcomes) {
+        const bet = outcome.bets.find((b) => b.id === betId)
+        if (bet) { bet.status = 'closed'; return }
+      }
+    throw new Error(`Bet ${betId} not found`)
+  }
+
+  async payBet(betId: string, won: boolean): Promise<void> {
+    for (const event of this.events)
+      for (const outcome of event.outcomes) {
+        const bet = outcome.bets.find((b) => b.id === betId)
+        if (bet) {
+          const pnl = won ? bet.stake * (bet.odds ?? outcome.odds) : -bet.stake
+          bet.pnl = pnl
+          bet.status = 'paid'
+          const profile = this.profiles.find((p) => p.id === bet.user_id)
+          if (profile) {
+            profile.balance += pnl
+            if (won) profile.wins += 1; else profile.losses += 1
+          }
+          return
+        }
+      }
+    throw new Error(`Bet ${betId} not found`)
+  }
+
+  async voidBet(betId: string): Promise<void> {
+    for (const event of this.events)
+      for (const outcome of event.outcomes) {
+        const bet = outcome.bets.find((b) => b.id === betId)
+        if (bet) { bet.pnl = 0; bet.status = 'voided'; return }
+      }
     throw new Error(`Bet ${betId} not found`)
   }
 
@@ -461,6 +506,21 @@ class SupabaseRepository implements Repository {
 
   async cancelBet(betId: string): Promise<void> {
     const { error } = await this.client.from('bets').delete().eq('id', betId)
+    if (error) throw error
+  }
+
+  async closeBet(betId: string): Promise<void> {
+    const { error } = await this.client.rpc('close_bet', { p_bet_id: betId })
+    if (error) throw error
+  }
+
+  async payBet(betId: string, won: boolean): Promise<void> {
+    const { error } = await this.client.rpc('pay_bet', { p_bet_id: betId, p_won: won })
+    if (error) throw error
+  }
+
+  async voidBet(betId: string): Promise<void> {
+    const { error } = await this.client.rpc('void_bet', { p_bet_id: betId })
     if (error) throw error
   }
 

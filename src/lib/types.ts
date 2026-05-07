@@ -17,12 +17,16 @@ export interface Profile {
   created_at: string
 }
 
+export type BetStatus = 'open' | 'closed' | 'paid' | 'voided'
+
 export interface Bet {
   id: string
   outcome_id: string
   user_id: string
   stake: number
+  odds?: number
   pnl?: number
+  status: BetStatus
   created_at: string
 }
 

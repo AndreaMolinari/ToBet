@@ -13,6 +13,9 @@ interface Props {
   onDelete?: () => void
   onAddOutcome?: (label: string, odds: number, stake: number) => void
   onHide?: () => void
+  onCloseBet?: (betId: string) => void
+  onPayBet?: (betId: string, won: boolean) => void
+  onVoidBet?: (betId: string) => void
 }
 
 function formatDate(iso: string): string {
@@ -23,7 +26,7 @@ function formatDate(iso: string): string {
   })
 }
 
-export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSettle, onVoid, onDelete, onAddOutcome, onHide }: Props) {
+export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSettle, onVoid, onDelete, onAddOutcome, onHide, onCloseBet, onPayBet, onVoidBet }: Props) {
   function displayName(userId: string): string {
     return profiles?.find(p => p.id === userId)?.display_name ?? userId.slice(0, 8)
   }
@@ -142,17 +145,98 @@ export function EventCard({ event, currentUserId, isAdmin, profiles, onBet, onSe
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-accent)', flexShrink: 0 }}>
                   {outcome.odds.toFixed(2)}x
                 </div>
-                {userBet && isOpen && (
-                  <div style={{
-                    fontSize: 11,
-                    color: 'var(--color-accent)',
-                    background: 'rgba(245,184,0,0.10)',
-                    borderRadius: 'var(--border-radius-full)',
-                    padding: '2px 8px',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}>
-                    ✓ Scommesso
+                {userBet && isOpen && userBet.status === 'open' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <div style={{
+                      fontSize: 11,
+                      color: 'var(--color-accent)',
+                      background: 'rgba(245,184,0,0.10)',
+                      borderRadius: 'var(--border-radius-full)',
+                      padding: '2px 8px',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      ✓ {userBet.stake}€
+                    </div>
+                    {onCloseBet && (userBet.user_id === currentUserId || isAdmin) && (
+                      <button
+                        onClick={() => onCloseBet(userBet.id)}
+                        style={{
+                          fontSize: 11,
+                          color: 'var(--color-text-tertiary)',
+                          background: 'transparent',
+                          border: '0.5px solid var(--color-border-tertiary)',
+                          borderRadius: 'var(--border-radius-full)',
+                          padding: '2px 8px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Chiudi
+                      </button>
+                    )}
+                  </div>
+                )}
+                {userBet && isOpen && userBet.status === 'closed' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <div style={{
+                      fontSize: 11,
+                      color: 'var(--color-text-tertiary)',
+                      background: 'rgba(255,255,255,0.06)',
+                      borderRadius: 'var(--border-radius-full)',
+                      padding: '2px 8px',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      Chiusa · {userBet.stake}€
+                    </div>
+                    {isAdmin && onPayBet && onVoidBet && (
+                      <>
+                        <button
+                          onClick={() => onPayBet(userBet.id, true)}
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--color-success)',
+                            background: 'transparent',
+                            border: '0.5px solid var(--color-success)',
+                            borderRadius: 'var(--border-radius-full)',
+                            padding: '2px 8px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Vinta
+                        </button>
+                        <button
+                          onClick={() => onPayBet(userBet.id, false)}
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--color-danger)',
+                            background: 'transparent',
+                            border: '0.5px solid var(--color-danger)',
+                            borderRadius: 'var(--border-radius-full)',
+                            padding: '2px 8px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Persa
+                        </button>
+                        <button
+                          onClick={() => onVoidBet(userBet.id)}
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--color-text-tertiary)',
+                            background: 'transparent',
+                            border: '0.5px solid var(--color-border-tertiary)',
+                            borderRadius: 'var(--border-radius-full)',
+                            padding: '2px 8px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Rimborsa
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
                 {canBet && (

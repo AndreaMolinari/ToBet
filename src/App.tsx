@@ -22,7 +22,7 @@ export default function App() {
   const userTags = user?.role === 'admin' ? undefined : user?.tags
   const { events: openEvents, createEvent, addOutcome, deleteEvent, settleEvent, voidEvent, refresh: refreshOpen } = useEvents('open', false, userTags)
   const { refresh: refreshSettled } = useEvents('settled', false, userTags)
-  const { placeBet } = useBets()
+  const { placeBet, closeBet, payBet, voidBet } = useBets()
   const { profiles, updateRole, updateTags, updateDisplayName } = useLeaderboard(userTags)
   const { tags: allTags, createTag, deleteTag } = useTags()
   const [eventFormMode, setEventFormMode] = useState<EventMode | null>(null)
@@ -92,6 +92,33 @@ export default function App() {
       await voidEvent(eventId)
       refreshSettled()
       toast.success('Evento annullato, stake rimborsate')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nell\'annullamento')
+    }
+  }
+
+  async function handleCloseBet(betId: string) {
+    try {
+      await closeBet(betId)
+      toast.success('Bet chiusa')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nella chiusura')
+    }
+  }
+
+  async function handlePayBet(betId: string, won: boolean) {
+    try {
+      await payBet(betId, won)
+      toast.success(won ? 'Bet pagata — vittoria!' : 'Bet pagata — perdita')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Errore nel pagamento')
+    }
+  }
+
+  async function handleVoidBet(betId: string) {
+    try {
+      await voidBet(betId)
+      toast.success('Bet annullata, stake rimborsata')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Errore nell\'annullamento')
     }
@@ -367,6 +394,9 @@ export default function App() {
                   onVoid={() => handleVoid(event.id)}
                   onDelete={() => handleDeleteEvent(event.id)}
                   onAddOutcome={(label, odds, stake) => handleAddOutcome(event.id, label, odds, stake)}
+                  onCloseBet={handleCloseBet}
+                  onPayBet={handlePayBet}
+                  onVoidBet={handleVoidBet}
                 />
               ))}
             </div>

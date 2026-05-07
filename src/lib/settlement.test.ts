@@ -3,7 +3,7 @@ import { calculatePnl, calculateBalance, settleEvent } from './settlement'
 import type { Bet, Outcome, Event } from './types'
 
 function makeBet(overrides: Partial<Bet> = {}): Bet {
-  return { id: 'b1', outcome_id: 'o1', user_id: 'u1', stake: 10, created_at: '', ...overrides }
+  return { id: 'b1', outcome_id: 'o1', user_id: 'u1', stake: 10, status: 'open', created_at: '', ...overrides }
 }
 
 function makeOutcome(overrides: Partial<Outcome> = {}): Outcome {
