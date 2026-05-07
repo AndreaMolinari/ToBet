@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/AndreaMolinari/ToBet/compare/v1.5.0...v1.6.0) (2026-05-07)
+
+
+### Features
+
+* bet close/pay flow — player chiude, admin paga o rimborsa ([f395fbc](https://github.com/AndreaMolinari/ToBet/commit/f395fbc1fec3f1cada0a16b59ca22e81573ce3d0))
+
 ## [1.5.0](https://github.com/AndreaMolinari/ToBet/compare/v1.4.0...v1.5.0) (2026-05-07)
 
 
