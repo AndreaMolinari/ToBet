@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/AndreaMolinari/ToBet/compare/v1.6.0...v1.6.1) (2026-05-07)
+
+
+### Bug Fixes
+
+* default event tag al primo tag dell'utente invece di public ([475afe9](https://github.com/AndreaMolinari/ToBet/commit/475afe98d94c655bea050ddb9820ef17bab3dc26))
+
 ## [1.6.0](https://github.com/AndreaMolinari/ToBet/compare/v1.5.0...v1.6.0) (2026-05-07)
 
 
