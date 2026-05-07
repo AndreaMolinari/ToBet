@@ -275,6 +275,18 @@ export function Leaderboard({ profiles, allTags = [], currentUserId, isAdmin, on
                 }}>
                   #{i + 1}
                 </div>
+                {p.avatar_url ? (
+                  <img src={p.avatar_url} alt={p.display_name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{
+                    width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                    background: 'var(--color-border-tertiary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 700, color: 'var(--color-text-tertiary)',
+                  }}>
+                    {p.display_name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div style={{ flex: 1, fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)' }}>
                   {p.display_name}
                   {isSelf && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--color-text-tertiary)', fontWeight: 400 }}>tu</span>}

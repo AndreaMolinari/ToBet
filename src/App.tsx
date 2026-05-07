@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
+import { useGravatarUrl } from './lib/gravatar'
 import { useEvents } from './hooks/useEvents'
 import { useBets } from './hooks/useBets'
 import { useLeaderboard } from './hooks/useLeaderboard'
@@ -25,6 +26,7 @@ export default function App() {
   const { profiles, updateRole, updateTags, updateDisplayName } = useLeaderboard(userTags)
   const { tags: allTags, createTag, deleteTag } = useTags()
   const [eventFormMode, setEventFormMode] = useState<EventMode | null>(null)
+  const gravatarUrl = useGravatarUrl(user?.email)
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [tab, setTab] = useState<'home' | 'archive' | 'mybets' | 'leaderboard' | 'admin'>('home')
@@ -262,18 +264,31 @@ export default function App() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <Logo />
-        <button
-          onClick={signOut}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-text-tertiary)',
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
-        >
-          Esci
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {gravatarUrl && (
+              <img
+                src={gravatarUrl}
+                alt="avatar"
+                style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+              />
+            )}
+            <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{user?.email}</span>
+          </div>
+          <button
+            onClick={signOut}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text-tertiary)',
+              fontSize: 12,
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            Esci
+          </button>
+        </div>
       </div>
 
       {/* Tab bar */}
